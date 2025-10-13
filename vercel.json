@@ -1,0 +1,14 @@
+{
+  "crons": [
+    {
+      "path": "/api/scrape",
+      "schedule": "0 2 * * *"
+    }
+  ],
+  "env": {
+    "DATABASE_URL": "@database-url",
+    "CRON_SECRET": "@cron-secret"
+  },
+  "regions": ["sin1"],
+  "framework": "nextjs"
+}
