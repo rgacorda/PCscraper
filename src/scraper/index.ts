@@ -29,7 +29,11 @@ export async function runScraperJob(retailer: Retailer) {
         scrapedData = await scrapePCWorth();
         break;
       case Retailer.BERMOR:
-        scrapedData = await scrapeBermor();
+        // Get max pages from environment variable (default to 5 if not set)
+        const bermorMaxPages = process.env.BERMOR_MAX_PAGES
+          ? parseInt(process.env.BERMOR_MAX_PAGES, 10)
+          : 5;
+        scrapedData = await scrapeBermor(bermorMaxPages);
         break;
       default:
         throw new Error(`Unknown retailer: ${retailer}`);
@@ -37,34 +41,61 @@ export async function runScraperJob(retailer: Retailer) {
 
     itemsScraped = scrapedData.length;
 
+    // Build a map of existing listings by retailer URL for faster lookups
+    console.log('📊 Building map of existing listings...');
+    const existingListings = await prisma.productListing.findMany({
+      where: {
+        retailer,
+      },
+      include: {
+        product: true,
+      },
+    });
+
+    const listingMap = new Map(
+      existingListings.map(listing => [listing.retailerUrl, listing])
+    );
+    console.log(`   Found ${listingMap.size} existing listings for ${retailer}`);
+
     // Process each scraped item
     for (const item of scrapedData) {
       try {
         const normalized = normalizeProduct(item);
 
-        // Upsert product
-        const product = await prisma.product.upsert({
-          where: {
-            id: normalized.productId || 'new',
-          },
-          create: {
-            name: normalized.name,
-            category: normalized.category,
-            brand: normalized.brand,
-            model: normalized.model,
-            description: normalized.description,
-            imageUrl: normalized.imageUrl,
-            lowestPrice: normalized.price,
-            highestPrice: normalized.price,
-          },
-          update: {
-            name: normalized.name,
-            brand: normalized.brand,
-            model: normalized.model,
-            description: normalized.description,
-            imageUrl: normalized.imageUrl,
-          },
-        });
+        // Check if a listing already exists for this retailer URL
+        const existingListing = listingMap.get(normalized.url);
+
+        let product;
+
+        if (existingListing) {
+          // Update existing product
+          product = await prisma.product.update({
+            where: {
+              id: existingListing.productId,
+            },
+            data: {
+              name: normalized.name,
+              brand: normalized.brand,
+              model: normalized.model,
+              description: normalized.description,
+              imageUrl: normalized.imageUrl || existingListing.product.imageUrl,
+            },
+          });
+        } else {
+          // Create new product
+          product = await prisma.product.create({
+            data: {
+              name: normalized.name,
+              category: normalized.category,
+              brand: normalized.brand,
+              model: normalized.model,
+              description: normalized.description,
+              imageUrl: normalized.imageUrl,
+              lowestPrice: normalized.price,
+              highestPrice: normalized.price,
+            },
+          });
+        }
 
         // Upsert listing
         await prisma.productListing.upsert({

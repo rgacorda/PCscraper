@@ -7,13 +7,18 @@ export async function scrapeBermor(maxPages: number = 5): Promise<ScrapedProduct
   const baseUrl = 'http://bermorzone.com.ph';
   const shopUrl = `${baseUrl}/shop/`;
 
-  console.log(`🛒 Starting Bermor scraper (max ${maxPages} pages)...`);
+  // Support unlimited pages when maxPages is 0 or negative
+  const isUnlimited = maxPages <= 0;
+  const effectiveMaxPages = isUnlimited ? Infinity : maxPages;
+
+  console.log(`🛒 Starting Bermor scraper (${isUnlimited ? 'unlimited' : `max ${maxPages}`} pages)...`);
 
   try {
     let currentPage = 1;
     let hasNextPage = true;
+    let productsWithoutImages = 0;
 
-    while (hasNextPage && currentPage <= maxPages) {
+    while (hasNextPage && currentPage <= effectiveMaxPages) {
       const pageUrl = currentPage === 1 ? shopUrl : `${shopUrl}page/${currentPage}/`;
 
       console.log(`\n📄 Scraping page ${currentPage}: ${pageUrl}`);
@@ -50,9 +55,24 @@ export async function scrapeBermor(maxPages: number = 5): Promise<ScrapedProduct
                                $el.find('a').first().attr('href');
             const url = productLink || '';
 
-            // Extract image
-            const imageUrl = $el.find('img').first().attr('src') ||
-                            $el.find('img').first().attr('data-src') || '';
+            // Extract image - try multiple attributes for lazy-loaded images
+            // Priority order: data-lazy-src (pages 2+), then src (page 1)
+            // Filter out empty SVG placeholders
+            const $img = $el.find('img').first();
+            const possibleUrls = [
+              $img.attr('data-lazy-src'),
+              $img.attr('data-src'),
+              $img.attr('data-original'),
+              $img.attr('data-srcset')?.split(',')[0]?.trim().split(' ')[0],
+              $img.attr('src'),
+            ];
+
+            // Find first non-empty URL that isn't an SVG placeholder
+            const imageUrl = possibleUrls.find(url =>
+              url &&
+              url.trim() !== '' &&
+              !url.includes('data:image/svg')
+            ) || '';
 
             // Check stock status - if no "out of stock" text found, assume in stock
             const stockText = $el.text().toLowerCase();
@@ -60,6 +80,11 @@ export async function scrapeBermor(maxPages: number = 5): Promise<ScrapedProduct
 
             // Only add products with valid name and price
             if (name && price > 0 && url) {
+              // Track products without images
+              if (!imageUrl) {
+                productsWithoutImages++;
+              }
+
               products.push({
                 name,
                 price,
@@ -99,6 +124,9 @@ export async function scrapeBermor(maxPages: number = 5): Promise<ScrapedProduct
     console.log(`\n✅ Scraping complete!`);
     console.log(`   Total pages scraped: ${currentPage}`);
     console.log(`   Total products found: ${products.length}`);
+    if (productsWithoutImages > 0) {
+      console.log(`   ⚠️  Products without images: ${productsWithoutImages}`);
+    }
 
   } catch (err) {
     console.error('❌ Fatal error in Bermor scraper:', err);

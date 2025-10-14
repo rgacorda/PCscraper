@@ -14,7 +14,11 @@
     "db:migrate": "prisma migrate dev",
     "db:studio": "prisma studio",
     "db:seed": "tsx scripts/seed.ts",
-    "scrape": "tsx src/scraper/index.ts",
+    "scrape": "tsx src/scraper/cli.ts",
+    "scrape:all": "tsx src/scraper/cli.ts",
+    "scrape:datablitz": "tsx src/scraper/cli.ts datablitz",
+    "scrape:pcworth": "tsx src/scraper/cli.ts pcworth",
+    "scrape:bermor": "tsx src/scraper/cli.ts bermor",
     "test": "jest",
     "test:watch": "jest --watch"
   },

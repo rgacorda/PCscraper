@@ -11,7 +11,12 @@
       "Bash(tsx scripts/test-bermor.ts:*)",
       "Bash(npx tsx:*)",
       "Bash(MAX_PAGES=10 npx tsx:*)",
-      "Read(//private/tmp/**)"
+      "Read(//private/tmp/**)",
+      "Bash(npx prisma migrate reset:*)",
+      "Bash(npx prisma migrate dev:*)",
+      "Bash(npm run scrape:bermor:*)",
+      "Bash(MAX_PAGES=3 npx tsx:*)",
+      "Bash(BERMOR_MAX_PAGES=2 npx tsx src/scraper/cli.ts:*)"
     ],
     "deny": [],
     "ask": []
