@@ -47,7 +47,7 @@ export default function ProductList() {
 
   const categories = [
     'CPU', 'GPU', 'MOTHERBOARD', 'RAM', 'STORAGE',
-    'PSU', 'CASE', 'COOLING', 'MONITOR', 'PERIPHERAL'
+    'PSU', 'CASE', 'COOLING', 'MONITOR', 'PERIPHERAL', 'ACCESSORY'
   ];
 
   if (loading) {

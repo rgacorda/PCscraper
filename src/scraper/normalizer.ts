@@ -47,9 +47,53 @@ function categorizeProduct(name: string, hint?: string): PartCategory {
   const nameLower = name.toLowerCase();
   const hintLower = hint?.toLowerCase() || '';
 
+  // Check accessories FIRST (more specific matches)
+  const accessoryKeywords = [
+    'thermal paste', 'thermal compound', 'thermal pad',
+    'cable', 'extension cable', 'sleeved cable',
+    'enclosure', 'storage enclosure', 'external enclosure',
+    'adapter', 'bracket', 'mounting',
+    'rgb strip', 'led strip', 'argb',
+    'fan hub', 'fan controller',
+    'cable management', 'cable tie',
+    'screw', 'standoff',
+  ];
+
+  for (const keyword of accessoryKeywords) {
+    if (nameLower.includes(keyword) || hintLower.includes(keyword)) {
+      return PartCategory.ACCESSORY;
+    }
+  }
+
+  // Check CPU but exclude coolers
+  if ((nameLower.includes('cpu') || nameLower.includes('processor')) &&
+      !nameLower.includes('cooler') &&
+      !nameLower.includes('cooling') &&
+      !nameLower.includes('thermal')) {
+    return PartCategory.CPU;
+  }
+
+  // Check COOLING category (coolers and fans, but NOT thermal paste)
+  const coolingKeywords = ['cooler', 'cooling', 'fan', 'radiator', 'water cool', 'aio'];
+  for (const keyword of coolingKeywords) {
+    if (nameLower.includes(keyword) || hintLower.includes(keyword)) {
+      return PartCategory.COOLING;
+    }
+  }
+
+  // Check STORAGE but exclude enclosures
+  if ((nameLower.includes('ssd') ||
+       nameLower.includes('hdd') ||
+       nameLower.includes('hard drive') ||
+       nameLower.includes('nvme') ||
+       nameLower.includes('m.2')) &&
+      !nameLower.includes('enclosure') &&
+      !nameLower.includes('external')) {
+    return PartCategory.STORAGE;
+  }
+
+  // Other main categories
   const categoryMap: Record<string, PartCategory> = {
-    cpu: PartCategory.CPU,
-    processor: PartCategory.CPU,
     gpu: PartCategory.GPU,
     'graphics card': PartCategory.GPU,
     'video card': PartCategory.GPU,
@@ -57,22 +101,18 @@ function categorizeProduct(name: string, hint?: string): PartCategory {
     mobo: PartCategory.MOTHERBOARD,
     ram: PartCategory.RAM,
     memory: PartCategory.RAM,
-    ssd: PartCategory.STORAGE,
-    hdd: PartCategory.STORAGE,
-    'hard drive': PartCategory.STORAGE,
-    storage: PartCategory.STORAGE,
     psu: PartCategory.PSU,
     'power supply': PartCategory.PSU,
     case: PartCategory.CASE,
     chassis: PartCategory.CASE,
-    cooler: PartCategory.COOLING,
-    cooling: PartCategory.COOLING,
-    fan: PartCategory.COOLING,
     monitor: PartCategory.MONITOR,
     display: PartCategory.MONITOR,
     keyboard: PartCategory.PERIPHERAL,
     mouse: PartCategory.PERIPHERAL,
     headset: PartCategory.PERIPHERAL,
+    speaker: PartCategory.PERIPHERAL,
+    webcam: PartCategory.PERIPHERAL,
+    microphone: PartCategory.PERIPHERAL,
   };
 
   for (const [keyword, category] of Object.entries(categoryMap)) {

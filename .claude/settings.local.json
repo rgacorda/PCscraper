@@ -16,7 +16,8 @@
       "Bash(npx prisma migrate dev:*)",
       "Bash(npm run scrape:bermor:*)",
       "Bash(MAX_PAGES=3 npx tsx:*)",
-      "Bash(BERMOR_MAX_PAGES=2 npx tsx src/scraper/cli.ts:*)"
+      "Bash(BERMOR_MAX_PAGES=2 npx tsx src/scraper/cli.ts:*)",
+      "Bash(npx prisma generate:*)"
     ],
     "deny": [],
     "ask": []
