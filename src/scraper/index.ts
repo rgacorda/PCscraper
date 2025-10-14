@@ -1,6 +1,6 @@
 import { Retailer } from '@prisma/client';
 import { scrapeDatablitz } from './retailers/datablitz';
-import { scrapePCWorx } from './retailers/pcworx';
+import { scrapePCWorth } from './retailers/pcworth';
 import { scrapeBermor } from './retailers/bermor';
 import prisma from '@/lib/prisma';
 import { normalizeProduct } from './normalizer';
@@ -25,8 +25,8 @@ export async function runScraperJob(retailer: Retailer) {
       case Retailer.DATABLITZ:
         scrapedData = await scrapeDatablitz();
         break;
-      case Retailer.PCWORX:
-        scrapedData = await scrapePCWorx();
+      case Retailer.PCWORTH:
+        scrapedData = await scrapePCWorth();
         break;
       case Retailer.BERMOR:
         scrapedData = await scrapeBermor();

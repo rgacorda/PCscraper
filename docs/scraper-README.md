@@ -6,7 +6,7 @@ The scraper module extracts and normalizes PC part data from multiple PH retaile
 
 ## 🏬 Supported Stores
 - Datablitz
-- PCWorx
+- PCWorth
 - Bermor Techzone
 
 ---
@@ -27,7 +27,7 @@ interface PCPart {
   brand: string;
   price: number;
   stock: boolean;
-  store: 'Datablitz' | 'PCWorx' | 'Bermor';
+  store: 'Datablitz' | 'PCWorth' | 'Bermor';
   url: string;
 }
 ```

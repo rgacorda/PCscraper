@@ -2,9 +2,9 @@ import * as cheerio from 'cheerio';
 import { ScrapedProduct } from '../normalizer';
 import { fetchWithRetry } from '@/lib/utils';
 
-export async function scrapePCWorx(): Promise<ScrapedProduct[]> {
+export async function scrapePCWorth(): Promise<ScrapedProduct[]> {
   const products: ScrapedProduct[] = [];
-  const baseUrl = 'https://www.pcworx.com';
+  const baseUrl = 'https://www.pcworth.com';
 
   // Categories to scrape
   const categories = [
@@ -39,11 +39,11 @@ export async function scrapePCWorx(): Promise<ScrapedProduct[]> {
             });
           }
         } catch (err) {
-          console.error('Error parsing PCWorx product:', err);
+          console.error('Error parsing PCWorth product:', err);
         }
       });
     } catch (err) {
-      console.error(`Error scraping PCWorx category ${category}:`, err);
+      console.error(`Error scraping PCWorth category ${category}:`, err);
     }
   }
 

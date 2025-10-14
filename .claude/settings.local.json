@@ -4,7 +4,14 @@
       "Bash(chmod:*)",
       "Bash(npm run db:seed:*)",
       "Bash(curl:*)",
-      "Bash(lsof:*)"
+      "Bash(lsof:*)",
+      "Bash(mkdir:*)",
+      "Bash(mv:*)",
+      "Bash(npx prisma db push:*)",
+      "Bash(tsx scripts/test-bermor.ts:*)",
+      "Bash(npx tsx:*)",
+      "Bash(MAX_PAGES=10 npx tsx:*)",
+      "Read(//private/tmp/**)"
     ],
     "deny": [],
     "ask": []

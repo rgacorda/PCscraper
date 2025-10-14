@@ -49,7 +49,7 @@ npm run db:seed
 ## Retailers
 
 - **Datablitz** (www.datablitz.com.ph)
-- **PCWorx** (www.pcworx.com)
+- **PCWorth** (www.pcworth.com)
 - **Bermor Techzone** (www.bermor.com)
 
 ## Commands

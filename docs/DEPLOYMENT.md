@@ -121,7 +121,7 @@ curl -X POST https://your-domain.com/api/scrape \
   -d '{"retailer": "DATABLITZ"}'
 ```
 
-Retailers: `DATABLITZ`, `PCWORX`, `BERMOR`
+Retailers: `DATABLITZ`, `PCWORTH`, `BERMOR`
 
 ### Monitoring
 

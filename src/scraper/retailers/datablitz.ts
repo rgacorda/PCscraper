@@ -4,7 +4,7 @@ import { fetchWithRetry } from '@/lib/utils';
 
 export async function scrapeDatablitz(): Promise<ScrapedProduct[]> {
   const products: ScrapedProduct[] = [];
-  const baseUrl = 'https://www.datablitz.com.ph';
+  const baseUrl = 'https://ecommerce.datablitz.com.ph';
 
   // Categories to scrape
   const categories = [

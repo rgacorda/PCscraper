@@ -145,7 +145,7 @@ Expected output:
 
 Each product has listings from **3 retailers**:
 - **Datablitz** - `www.datablitz.com.ph`
-- **PCWorx** - `www.pcworx.com`
+- **PCWorth** - `www.pcworth.com`
 - **Bermor Techzone** - `www.bermor.com`
 
 ### 💰 Realistic Pricing
@@ -194,7 +194,7 @@ All products include images from Unsplash:
 {
   id: string (cuid)
   productId: string
-  retailer: Retailer (DATABLITZ | PCWORX | BERMOR)
+  retailer: Retailer (DATABLITZ | PCWORTH | BERMOR)
   retailerUrl: string
   price: Decimal
   stockStatus: StockStatus

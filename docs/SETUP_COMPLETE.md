@@ -31,7 +31,7 @@ Your **PH PC Parts Aggregator** is now fully configured with production-ready fi
 - [src/scraper/index.ts](src/scraper/index.ts) - Scraper orchestrator
 - [src/scraper/normalizer.ts](src/scraper/normalizer.ts) - Data normalization
 - [src/scraper/retailers/datablitz.ts](src/scraper/retailers/datablitz.ts) - Datablitz scraper
-- [src/scraper/retailers/pcworx.ts](src/scraper/retailers/pcworx.ts) - PCWorx scraper
+- [src/scraper/retailers/pcworth.ts](src/scraper/retailers/pcworth.ts) - PCWorth scraper
 - [src/scraper/retailers/bermor.ts](src/scraper/retailers/bermor.ts) - Bermor scraper
 
 ### ✅ Frontend (UI)
@@ -152,7 +152,7 @@ See [DEPLOYMENT.md](DEPLOYMENT.md) for detailed instructions.
 
 ### ✅ Core Functionality
 - [x] Product data aggregation
-- [x] Multi-retailer scraping (Datablitz, PCWorx, Bermor)
+- [x] Multi-retailer scraping (Datablitz, PCWorth, Bermor)
 - [x] Product categorization and normalization
 - [x] Price tracking and comparison
 - [x] Stock status monitoring

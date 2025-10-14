@@ -92,7 +92,7 @@ curl -X POST http://localhost:3000/api/scrape \
   -d '{"retailer": "DATABLITZ"}'
 ```
 
-Available retailers: `DATABLITZ`, `PCWORX`, `BERMOR`
+Available retailers: `DATABLITZ`, `PCWORTH`, `BERMOR`
 
 ## Common Tasks
 

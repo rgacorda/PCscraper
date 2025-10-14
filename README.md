@@ -1,6 +1,6 @@
 # 🖥️ PH PC Parts Aggregator (Full-Stack Next.js)
 
-A full-stack **Next.js** application that aggregates PC part prices and availability from popular Philippine retailers such as **Datablitz**, **PCWorx**, and **Bermor Techzone**.
+A full-stack **Next.js** application that aggregates PC part prices and availability from popular Philippine retailers such as **Datablitz**, **PCWorth**, and **Bermor Techzone**.
 
 This platform provides a centralized interface for comparing prices, checking stock, and building PC configurations — built entirely with **Next.js (App Router)** and **TypeScript**.
 

@@ -21,8 +21,8 @@ The API routes provide structured access to the scraped PC part data.
   "id": "cpu-ryzen-5600",
   "name": "AMD Ryzen 5 5600",
   "price": 7899,
-  "store": "PCWorx",
+  "store": "PCWorth",
   "stock": true,
-  "url": "https://pcworx.ph/amd-ryzen-5600"
+  "url": "https://pcworth.ph/amd-ryzen-5600"
 }
 ```

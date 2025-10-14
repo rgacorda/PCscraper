@@ -41,7 +41,7 @@ PCscraper/
 │   └── scraper/               # Web scraping module
 │       ├── retailers/
 │       │   ├── datablitz.ts   # Datablitz scraper
-│       │   ├── pcworx.ts      # PCWorx scraper
+│       │   ├── pcworth.ts     # PCWorth scraper
 │       │   └── bermor.ts      # Bermor scraper
 │       ├── index.ts           # Scraper orchestrator
 │       ├── normalizer.ts      # Data normalization
@@ -101,7 +101,7 @@ PCscraper/
 | [src/scraper/index.ts](src/scraper/index.ts) | Scraping orchestrator |
 | [src/scraper/normalizer.ts](src/scraper/normalizer.ts) | Data normalization |
 | [src/scraper/retailers/datablitz.ts](src/scraper/retailers/datablitz.ts) | Datablitz scraper |
-| [src/scraper/retailers/pcworx.ts](src/scraper/retailers/pcworx.ts) | PCWorx scraper |
+| [src/scraper/retailers/pcworth.ts](src/scraper/retailers/pcworth.ts) | PCWorth scraper |
 | [src/scraper/retailers/bermor.ts](src/scraper/retailers/bermor.ts) | Bermor scraper |
 
 ### UI Components
@@ -133,7 +133,7 @@ PCscraper/
 ### Enums
 
 - **PartCategory**: CPU, GPU, MOTHERBOARD, RAM, etc.
-- **Retailer**: DATABLITZ, PCWORX, BERMOR
+- **Retailer**: DATABLITZ, PCWORTH, BERMOR
 - **StockStatus**: IN_STOCK, OUT_OF_STOCK, LIMITED_STOCK, UNKNOWN
 
 ## NPM Scripts
@@ -224,7 +224,7 @@ API Route (/api/scrape)
     ↓
 Scraper Index (src/scraper/index.ts)
     ↓
-Retailer Scraper (datablitz/pcworx/bermor)
+Retailer Scraper (datablitz/pcworth/bermor)
     ↓
 Normalizer (categorize, clean data)
     ↓

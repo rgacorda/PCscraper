@@ -21,7 +21,7 @@ export default function RootLayout({
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             <div className="text-center text-gray-600 text-sm">
               <p className="mb-2">© 2025 PH PC Parts Aggregator. Compare prices from top retailers.</p>
-              <p className="text-xs text-gray-500">Datablitz • PCWorx • Bermor Techzone</p>
+              <p className="text-xs text-gray-500">Datablitz • PCWorth • Bermor Techzone</p>
             </div>
           </div>
         </footer>

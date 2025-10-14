@@ -427,7 +427,7 @@ async function main() {
     });
 
     // Create listings for each retailer with realistic variations
-    const retailers = [Retailer.DATABLITZ, Retailer.PCWORX, Retailer.BERMOR];
+    const retailers = [Retailer.DATABLITZ, Retailer.PCWORTH, Retailer.BERMOR];
     const stockOptions = [
       StockStatus.IN_STOCK,
       StockStatus.IN_STOCK,
@@ -448,7 +448,7 @@ async function main() {
       // Realistic retailer URLs
       const retailerUrls = {
         [Retailer.DATABLITZ]: `https://www.datablitz.com.ph/products/${product.id}`,
-        [Retailer.PCWORX]: `https://www.pcworx.com/product/${product.id}`,
+        [Retailer.PCWORTH]: `https://www.pcworth.com/product/${product.id}`,
         [Retailer.BERMOR]: `https://www.bermor.com/item/${product.id}`,
       };
 

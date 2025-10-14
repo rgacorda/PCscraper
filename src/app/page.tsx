@@ -11,7 +11,7 @@ export default function HomePage() {
             Find the Best PC Part Deals
           </h1>
           <p className="text-blue-100 text-sm sm:text-base mb-4 max-w-2xl">
-            Compare prices from top Philippine retailers: Datablitz, PCWorx, and Bermor Techzone. Build your dream PC at the best prices.
+            Compare prices from top Philippine retailers: Datablitz, PCWorth, and Bermor Techzone. Build your dream PC at the best prices.
           </p>
           <div className="flex flex-wrap gap-3">
             <a href="/builder" className="bg-white text-primary-700 hover:bg-blue-50 font-medium py-2.5 px-5 rounded-lg transition-colors inline-flex items-center space-x-2">
