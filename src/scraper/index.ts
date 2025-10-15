@@ -79,6 +79,7 @@ export async function runScraperJob(retailer: Retailer) {
               model: normalized.model,
               description: normalized.description,
               imageUrl: normalized.imageUrl || existingListing.product.imageUrl,
+              rating: normalized.rating,
             },
           });
         } else {
@@ -91,6 +92,7 @@ export async function runScraperJob(retailer: Retailer) {
               model: normalized.model,
               description: normalized.description,
               imageUrl: normalized.imageUrl,
+              rating: normalized.rating,
               lowestPrice: normalized.price,
               highestPrice: normalized.price,
             },

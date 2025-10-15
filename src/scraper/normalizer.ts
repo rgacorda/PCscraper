@@ -10,6 +10,7 @@ export interface ScrapedProduct {
   description?: string;
   category?: string;
   inStock?: boolean;
+  rating?: number;
 }
 
 export interface NormalizedProduct {
@@ -23,6 +24,7 @@ export interface NormalizedProduct {
   price: number;
   url: string;
   stockStatus: StockStatus;
+  rating?: number;
 }
 
 export function normalizeProduct(scraped: ScrapedProduct): NormalizedProduct {
@@ -40,6 +42,7 @@ export function normalizeProduct(scraped: ScrapedProduct): NormalizedProduct {
     price: scraped.price,
     url: scraped.url,
     stockStatus,
+    rating: scraped.rating,
   };
 }
 
@@ -47,38 +50,109 @@ function categorizeProduct(name: string, hint?: string): PartCategory {
   const nameLower = name.toLowerCase();
   const hintLower = hint?.toLowerCase() || '';
 
-  // Check accessories FIRST (more specific matches)
-  const accessoryKeywords = [
-    'thermal paste', 'thermal compound', 'thermal pad',
-    'cable', 'extension cable', 'sleeved cable',
-    'enclosure', 'storage enclosure', 'external enclosure',
-    'adapter', 'bracket', 'mounting',
-    'rgb strip', 'led strip', 'argb',
-    'fan hub', 'fan controller',
-    'cable management', 'cable tie',
-    'screw', 'standoff',
-  ];
+  // Handle category hints from scraper
+  if (hint) {
+    if (hint === 'CPU') return PartCategory.CPU;
+    if (hint === 'MOTHERBOARD') return PartCategory.MOTHERBOARD;
+    if (hint === 'RAM') return PartCategory.RAM;
+    if (hint === 'HDD' || hint === 'SSD') return PartCategory.STORAGE;
+    if (hint === 'GPU') return PartCategory.GPU;
+    if (hint === 'CASE') return PartCategory.CASE;
+    if (hint === 'MONITOR') return PartCategory.MONITOR;
+    if (hint === 'PSU') return PartCategory.PSU;
+    if (hint === 'CPU_COOLER_AIR' || hint === 'CPU_COOLER_AIO') return PartCategory.CPU_COOLER;
+    if (hint === 'CASE_FAN') return PartCategory.CASE_FAN;
+  }
 
-  for (const keyword of accessoryKeywords) {
+  // Check CPU_COOLER FIRST (before CPU and accessories)
+  const cpuCoolerKeywords = [
+    'cpu cooler', 'cpu cooling', 'processor cooler',
+    'cpu air cooler', 'cpu tower cooler',
+    'aio', 'water cooler', 'water cooling', 'liquid cooler', 'liquid cooling',
+    'tower cooler', 'air cooler',
+    'cpu heatsink', 'cooler for cpu'
+  ];
+  for (const keyword of cpuCoolerKeywords) {
     if (nameLower.includes(keyword) || hintLower.includes(keyword)) {
-      return PartCategory.ACCESSORY;
+      return PartCategory.CPU_COOLER;
     }
   }
 
-  // Check CPU but exclude coolers
+  // Check accessories (but be more specific to avoid false positives)
+  // Thermal paste & compounds
+  if (nameLower.includes('thermal paste') ||
+      nameLower.includes('thermal compound') ||
+      nameLower.includes('thermal pad') ||
+      nameLower.includes('thermal grease')) {
+    return PartCategory.ACCESSORY;
+  }
+
+  // Cables
+  if ((nameLower.includes('cable') || nameLower.includes('sleeved')) &&
+      !nameLower.includes('psu') &&
+      !nameLower.includes('power supply')) {
+    return PartCategory.ACCESSORY;
+  }
+
+  // Storage enclosures
+  if (nameLower.includes('enclosure') ||
+      (nameLower.includes('external') && (nameLower.includes('ssd') || nameLower.includes('hdd')))) {
+    return PartCategory.ACCESSORY;
+  }
+
+  // GPU brackets and support (accessories, not GPU itself)
+  if ((nameLower.includes('gpu bracket') ||
+       nameLower.includes('gpu support') ||
+       nameLower.includes('graphics card bracket') ||
+       nameLower.includes('graphics card support') ||
+       nameLower.includes('vga bracket') ||
+       nameLower.includes('vga support')) &&
+      !nameLower.includes('geforce') &&
+      !nameLower.includes('radeon') &&
+      !nameLower.includes('rtx') &&
+      !nameLower.includes('rx ')) {
+    return PartCategory.ACCESSORY;
+  }
+
+  // Other accessories
+  if (nameLower.includes('adapter') ||
+      nameLower.includes('rgb strip') ||
+      nameLower.includes('led strip') ||
+      nameLower.includes('argb') ||
+      nameLower.includes('fan hub') ||
+      nameLower.includes('fan controller') ||
+      nameLower.includes('cable management') ||
+      nameLower.includes('standoff')) {
+    return PartCategory.ACCESSORY;
+  }
+
+  // Check CPU (exclude coolers, cooling, and thermal-related)
   if ((nameLower.includes('cpu') || nameLower.includes('processor')) &&
       !nameLower.includes('cooler') &&
       !nameLower.includes('cooling') &&
-      !nameLower.includes('thermal')) {
+      !nameLower.includes('thermal') &&
+      !nameLower.includes('heatsink') &&
+      !nameLower.includes('air') &&
+      !nameLower.includes('tower') &&
+      !nameLower.includes('aio')) {
     return PartCategory.CPU;
   }
 
-  // Check COOLING category (coolers and fans, but NOT thermal paste)
-  const coolingKeywords = ['cooler', 'cooling', 'fan', 'radiator', 'water cool', 'aio'];
-  for (const keyword of coolingKeywords) {
+  // Check CASE_FAN (case/chassis fans)
+  const caseFanKeywords = [
+    'case fan', 'chassis fan', 'pwm fan',
+    'cooling fan', 'intake fan', 'exhaust fan',
+    'mm fan', '120mm', '140mm', '200mm'
+  ];
+  for (const keyword of caseFanKeywords) {
     if (nameLower.includes(keyword) || hintLower.includes(keyword)) {
-      return PartCategory.COOLING;
+      return PartCategory.CASE_FAN;
     }
+  }
+
+  // Generic fan/radiator (fallback to CASE_FAN if not caught above)
+  if (nameLower.includes('fan') || nameLower.includes('radiator')) {
+    return PartCategory.CASE_FAN;
   }
 
   // Check STORAGE but exclude enclosures
@@ -92,11 +166,24 @@ function categorizeProduct(name: string, hint?: string): PartCategory {
     return PartCategory.STORAGE;
   }
 
+  // Check GPU (exclude brackets, mounts, and support accessories)
+  if ((nameLower.includes('gpu') ||
+       nameLower.includes('graphics card') ||
+       nameLower.includes('video card') ||
+       nameLower.includes('geforce') ||
+       nameLower.includes('radeon') ||
+       nameLower.includes('rtx ') ||
+       nameLower.includes('gtx ') ||
+       nameLower.includes('rx ')) &&
+      !nameLower.includes('bracket') &&
+      !nameLower.includes('support') &&
+      !nameLower.includes('mount') &&
+      !nameLower.includes('holder')) {
+    return PartCategory.GPU;
+  }
+
   // Other main categories
   const categoryMap: Record<string, PartCategory> = {
-    gpu: PartCategory.GPU,
-    'graphics card': PartCategory.GPU,
-    'video card': PartCategory.GPU,
     motherboard: PartCategory.MOTHERBOARD,
     mobo: PartCategory.MOTHERBOARD,
     ram: PartCategory.RAM,

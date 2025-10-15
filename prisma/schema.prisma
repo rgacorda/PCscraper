@@ -11,13 +11,14 @@ datasource db {
 // PC Part Categories
 enum PartCategory {
   CPU
+  CPU_COOLER
   GPU
   MOTHERBOARD
   RAM
   STORAGE
   PSU
   CASE
-  COOLING
+  CASE_FAN
   MONITOR
   PERIPHERAL
   ACCESSORY
@@ -48,6 +49,7 @@ model Product {
   model       String?
   description String?       @db.Text
   imageUrl    String?
+  rating      Decimal?      @db.Decimal(3, 2)
 
   // Aggregated pricing
   lowestPrice Decimal?      @db.Decimal(10, 2)

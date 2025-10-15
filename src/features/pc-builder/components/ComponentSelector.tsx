@@ -21,6 +21,13 @@ interface Product {
   }>;
 }
 
+interface PaginationInfo {
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
+}
+
 interface ComponentSelectorProps {
   category: string;
   onSelect: (product: Product, listing: any) => void;
@@ -35,22 +42,35 @@ export default function ComponentSelector({
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
+  const [pagination, setPagination] = useState<PaginationInfo>({
+    page: 1,
+    limit: 20,
+    total: 0,
+    totalPages: 0,
+  });
 
   useEffect(() => {
-    fetchProducts();
+    fetchProducts(1);
   }, [category]);
 
-  const fetchProducts = async () => {
+  const fetchProducts = async (page: number) => {
     setLoading(true);
     try {
       const params = new URLSearchParams();
       params.append('category', category);
       if (search) params.append('search', search);
-      params.append('limit', '50');
+      params.append('page', page.toString());
+      params.append('limit', '20');
 
       const response = await fetch(`/api/products?${params}`);
       const data = await response.json();
       setProducts(data.products || []);
+      setPagination(data.pagination || {
+        page: 1,
+        limit: 20,
+        total: 0,
+        totalPages: 0,
+      });
     } catch (error) {
       console.error('Error fetching products:', error);
     } finally {
@@ -60,7 +80,7 @@ export default function ComponentSelector({
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      if (search) fetchProducts();
+      fetchProducts(1);
     }, 300);
     return () => clearTimeout(timer);
   }, [search]);
@@ -79,15 +99,101 @@ export default function ComponentSelector({
     onClose();
   };
 
+  const goToPage = (page: number) => {
+    if (page >= 1 && page <= pagination.totalPages) {
+      fetchProducts(page);
+    }
+  };
+
+  const renderPagination = () => {
+    if (pagination.totalPages <= 1) return null;
+
+    const pages = [];
+    const currentPage = pagination.page;
+    const totalPages = pagination.totalPages;
+
+    // Always show first page
+    pages.push(1);
+
+    // Show pages around current page
+    for (let i = Math.max(2, currentPage - 1); i <= Math.min(totalPages - 1, currentPage + 1); i++) {
+      if (!pages.includes(i)) {
+        if (pages[pages.length - 1] < i - 1) {
+          pages.push(-1); // Ellipsis
+        }
+        pages.push(i);
+      }
+    }
+
+    // Always show last page
+    if (totalPages > 1) {
+      if (pages[pages.length - 1] < totalPages - 1) {
+        pages.push(-1); // Ellipsis
+      }
+      if (!pages.includes(totalPages)) {
+        pages.push(totalPages);
+      }
+    }
+
+    return (
+      <div className="flex items-center justify-center gap-2 flex-wrap">
+        <button
+          onClick={() => goToPage(currentPage - 1)}
+          disabled={currentPage === 1}
+          className="px-3 py-1.5 rounded-lg border border-gray-300 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors"
+        >
+          Previous
+        </button>
+
+        {pages.map((page, index) => {
+          if (page === -1) {
+            return (
+              <span key={`ellipsis-${index}`} className="px-2 text-gray-400">
+                ...
+              </span>
+            );
+          }
+
+          return (
+            <button
+              key={page}
+              onClick={() => goToPage(page)}
+              className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                page === currentPage
+                  ? 'bg-primary-600 text-white'
+                  : 'border border-gray-300 hover:bg-gray-50'
+              }`}
+            >
+              {page}
+            </button>
+          );
+        })}
+
+        <button
+          onClick={() => goToPage(currentPage + 1)}
+          disabled={currentPage === totalPages}
+          className="px-3 py-1.5 rounded-lg border border-gray-300 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors"
+        >
+          Next
+        </button>
+      </div>
+    );
+  };
+
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
       <div className="bg-white rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col">
         {/* Header */}
         <div className="bg-gradient-to-r from-primary-600 to-primary-700 text-white p-4 sm:p-6">
           <div className="flex items-center justify-between">
-            <h2 className="text-xl sm:text-2xl font-bold">
-              Select {category.replace('_', ' ')}
-            </h2>
+            <div>
+              <h2 className="text-xl sm:text-2xl font-bold">
+                Select {category.replace('_', ' ')}
+              </h2>
+              <p className="text-sm text-blue-100 mt-1">
+                {pagination.total} products available
+              </p>
+            </div>
             <button
               onClick={onClose}
               className="text-white hover:bg-white hover:bg-opacity-20 rounded-lg p-2 transition-colors"
@@ -213,11 +319,6 @@ export default function ComponentSelector({
                             <span className="text-xs text-gray-500">{product.model}</span>
                           )}
                         </div>
-                        {product.description && (
-                          <p className="text-xs text-gray-600 mt-1 line-clamp-1 hidden sm:block">
-                            {product.description}
-                          </p>
-                        )}
 
                         {/* Price & Stock */}
                         <div className="mt-2 flex items-center justify-between">
@@ -253,8 +354,22 @@ export default function ComponentSelector({
           )}
         </div>
 
+        {/* Pagination */}
+        {!loading && products.length > 0 && (
+          <div className="border-t p-4 bg-gray-50">
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+              <p className="text-sm text-gray-600">
+                Showing {(pagination.page - 1) * pagination.limit + 1} to{' '}
+                {Math.min(pagination.page * pagination.limit, pagination.total)} of{' '}
+                {pagination.total} products
+              </p>
+              {renderPagination()}
+            </div>
+          </div>
+        )}
+
         {/* Footer */}
-        <div className="border-t p-4 bg-gray-50">
+        <div className="border-t p-4 bg-white">
           <button
             onClick={onClose}
             className="w-full sm:w-auto px-6 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium rounded-lg transition-colors"
