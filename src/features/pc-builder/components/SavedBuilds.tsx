@@ -2,12 +2,16 @@
 
 import { useEffect, useState } from 'react';
 import { formatPrice } from '@/lib/utils';
+import BuildDetailsModal from '@/components/BuildDetailsModal';
+import StarRating from '@/components/StarRating';
 
 interface Build {
   id: string;
   name: string;
   description?: string;
   totalPrice: number;
+  averageRating?: number | null;
+  totalRatings?: number;
   createdAt: string;
   updatedAt: string;
   items: Array<{
@@ -33,6 +37,7 @@ export default function SavedBuilds() {
   const [builds, setBuilds] = useState<Build[]>([]);
   const [loading, setLoading] = useState(true);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [selectedBuildId, setSelectedBuildId] = useState<string | null>(null);
 
   useEffect(() => {
     fetchBuilds();
@@ -111,11 +116,18 @@ export default function SavedBuilds() {
             <div className="flex items-start justify-between mb-4">
               <div className="flex-1">
                 <h3 className="text-xl font-bold text-gray-900 mb-1">{build.name}</h3>
-                <p className="text-sm text-gray-500">
+                <p className="text-sm text-gray-500 mb-2">
                   {componentCount} components • {categoryCount} categories
                 </p>
+                {build.averageRating !== undefined && (
+                  <StarRating
+                    rating={build.averageRating}
+                    totalRatings={build.totalRatings || 0}
+                    size="sm"
+                  />
+                )}
                 {build.description && (
-                  <p className="text-sm text-gray-600 mt-1">{build.description}</p>
+                  <p className="text-sm text-gray-600 mt-2 line-clamp-2">{build.description}</p>
                 )}
               </div>
               <div className="flex items-center gap-2 ml-4">
@@ -125,6 +137,16 @@ export default function SavedBuilds() {
                     {formatPrice(Number(build.totalPrice))}
                   </p>
                 </div>
+                <button
+                  onClick={() => setSelectedBuildId(build.id)}
+                  className="p-2 text-gray-400 hover:text-primary-600 hover:bg-primary-50 rounded-lg transition-colors"
+                  title="View details"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                  </svg>
+                </button>
                 <button
                   onClick={() => handleDelete(build.id)}
                   disabled={deletingId === build.id}
@@ -202,6 +224,14 @@ export default function SavedBuilds() {
           </div>
         );
       })}
+
+      {/* Build Details Modal */}
+      {selectedBuildId && (
+        <BuildDetailsModal
+          buildId={selectedBuildId}
+          onClose={() => setSelectedBuildId(null)}
+        />
+      )}
     </div>
   );
 }

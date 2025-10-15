@@ -26,7 +26,7 @@ export async function runAllScrapers() {
       console.log(`📦 Scraping ${retailer}...`);
       const result = await runScraperJob(retailer);
       console.log(`✅ ${retailer} completed:`, result);
-      results.push({ retailer, ...result });
+      results.push(result);
     } catch (error) {
       console.error(`❌ ${retailer} failed:`, error);
       results.push({

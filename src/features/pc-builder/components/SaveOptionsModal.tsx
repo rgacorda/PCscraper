@@ -1,5 +1,9 @@
 'use client';
 
+import { useSession } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
+import toast from 'react-hot-toast';
+
 interface SaveOptionsModalProps {
   onSaveToHomepage: () => void;
   onSaveToPDF: () => void;
@@ -13,6 +17,21 @@ export default function SaveOptionsModal({
   onClose,
   saving
 }: SaveOptionsModalProps) {
+  const { data: session, status } = useSession();
+  const router = useRouter();
+
+  const handleSaveToHomepage = () => {
+    if (!session) {
+      toast.error('Please sign in to save your build', {
+        duration: 4000,
+      });
+      onClose();
+      router.push('/auth/login');
+      return;
+    }
+    onSaveToHomepage();
+  };
+
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 relative">
@@ -31,7 +50,7 @@ export default function SaveOptionsModal({
         <div className="mb-6">
           <h2 className="text-2xl font-bold text-gray-900 mb-2">Save Your Build</h2>
           <p className="text-gray-600 text-sm">
-            Choose how you'd like to save your PC configuration
+            Choose how you&apos;d like to save your PC configuration
           </p>
         </div>
 
@@ -39,8 +58,8 @@ export default function SaveOptionsModal({
         <div className="space-y-3">
           {/* Save to Homepage */}
           <button
-            onClick={onSaveToHomepage}
-            disabled={saving}
+            onClick={handleSaveToHomepage}
+            disabled={saving || status === 'loading'}
             className="w-full p-4 bg-gradient-to-r from-primary-50 to-blue-50 hover:from-primary-100 hover:to-blue-100 border-2 border-primary-200 hover:border-primary-400 rounded-xl transition-all text-left group disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <div className="flex items-start gap-4">
@@ -52,6 +71,7 @@ export default function SaveOptionsModal({
               <div className="flex-1">
                 <h3 className="font-semibold text-gray-900 group-hover:text-primary-700 transition-colors mb-1">
                   Save to Homepage
+                  {!session && <span className="text-xs text-orange-600 ml-2">(Sign in required)</span>}
                 </h3>
                 <p className="text-sm text-gray-600">
                   View and manage your build anytime from the homepage

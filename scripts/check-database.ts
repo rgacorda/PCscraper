@@ -55,7 +55,7 @@ async function checkDatabase() {
 
     for (const category of categories) {
       const products = await prisma.product.findMany({
-        where: { category },
+        where: { category: category as any },
         take: 3,
         include: {
           listings: {

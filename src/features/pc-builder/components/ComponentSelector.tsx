@@ -1,7 +1,8 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { formatPrice } from '@/lib/utils';
+import StarRating from '@/components/StarRating';
 
 interface Product {
   id: string;
@@ -12,6 +13,7 @@ interface Product {
   description?: string;
   imageUrl?: string;
   lowestPrice?: number;
+  rating?: number;
   listings: Array<{
     id: string;
     retailer: string;
@@ -41,6 +43,7 @@ export default function ComponentSelector({
 }: ComponentSelectorProps) {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
+  const [searching, setSearching] = useState(false);
   const [search, setSearch] = useState('');
   const [pagination, setPagination] = useState<PaginationInfo>({
     page: 1,
@@ -49,16 +52,22 @@ export default function ComponentSelector({
     totalPages: 0,
   });
 
-  useEffect(() => {
-    fetchProducts(1);
-  }, [category]);
+  // Use ref to store the latest search value for debounce
+  const searchTimerRef = useRef<NodeJS.Timeout | null>(null);
 
-  const fetchProducts = async (page: number) => {
-    setLoading(true);
+  // Memoized fetch function
+  const fetchProducts = useCallback(async (page: number, searchQuery: string) => {
+    // Don't show full loading spinner if we're just searching/paginating
+    if (page === 1 && searchQuery !== search) {
+      setSearching(true);
+    } else {
+      setLoading(true);
+    }
+
     try {
       const params = new URLSearchParams();
       params.append('category', category);
-      if (search) params.append('search', search);
+      if (searchQuery) params.append('search', searchQuery);
       params.append('page', page.toString());
       params.append('limit', '20');
 
@@ -66,7 +75,7 @@ export default function ComponentSelector({
       const data = await response.json();
       setProducts(data.products || []);
       setPagination(data.pagination || {
-        page: 1,
+        page: page,
         limit: 20,
         total: 0,
         totalPages: 0,
@@ -75,15 +84,35 @@ export default function ComponentSelector({
       console.error('Error fetching products:', error);
     } finally {
       setLoading(false);
+      setSearching(false);
     }
-  };
+  }, [category, search]);
 
+  // Initial load when category changes
   useEffect(() => {
-    const timer = setTimeout(() => {
-      fetchProducts(1);
-    }, 300);
-    return () => clearTimeout(timer);
-  }, [search]);
+    setSearch('');
+    fetchProducts(1, '');
+  }, [category]);
+
+  // Debounced search effect
+  useEffect(() => {
+    // Clear existing timer
+    if (searchTimerRef.current) {
+      clearTimeout(searchTimerRef.current);
+    }
+
+    // Set new timer for debounced search
+    searchTimerRef.current = setTimeout(() => {
+      fetchProducts(1, search);
+    }, 400); // 400ms debounce delay
+
+    // Cleanup function
+    return () => {
+      if (searchTimerRef.current) {
+        clearTimeout(searchTimerRef.current);
+      }
+    };
+  }, [search, fetchProducts]);
 
   const handleSelect = (product: Product) => {
     // Get the cheapest in-stock listing
@@ -101,7 +130,7 @@ export default function ComponentSelector({
 
   const goToPage = (page: number) => {
     if (page >= 1 && page <= pagination.totalPages) {
-      fetchProducts(page);
+      fetchProducts(page, search);
     }
   };
 
@@ -235,14 +264,19 @@ export default function ComponentSelector({
               placeholder="Search products..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 bg-white bg-opacity-20 text-white placeholder-white placeholder-opacity-70 rounded-lg focus:outline-none focus:ring-2 focus:ring-white focus:ring-opacity-50"
+              className="w-full pl-10 pr-12 py-2.5 bg-white bg-opacity-20 text-white placeholder-white placeholder-opacity-70 rounded-lg focus:outline-none focus:ring-2 focus:ring-white focus:ring-opacity-50"
             />
+            {searching && (
+              <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent"></div>
+              </div>
+            )}
           </div>
         </div>
 
         {/* Products List */}
-        <div className="flex-1 overflow-y-auto p-4 sm:p-6">
-          {loading ? (
+        <div className="flex-1 overflow-y-auto p-4 sm:p-6 relative min-h-[400px]">
+          {loading && products.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
               <p className="mt-4 text-gray-600">Loading products...</p>
@@ -268,7 +302,19 @@ export default function ComponentSelector({
               <p className="text-gray-400 text-sm mt-1">Try adjusting your search</p>
             </div>
           ) : (
-            <div className="space-y-3">
+            <div className="space-y-3 relative">
+              {/* Loading Overlay */}
+              {(loading || searching) && products.length > 0 && (
+                <div className="absolute inset-0 bg-white/60 backdrop-blur-[2px] z-10 flex items-center justify-center rounded-lg">
+                  <div className="bg-white shadow-lg rounded-lg px-6 py-3 flex items-center gap-3">
+                    <div className="animate-spin rounded-full h-5 w-5 border-2 border-primary-600 border-t-transparent"></div>
+                    <span className="text-sm font-medium text-gray-700">
+                      {searching ? 'Searching...' : 'Loading...'}
+                    </span>
+                  </div>
+                </div>
+              )}
+
               {products.map((product) => {
                 const cheapestListing = product.listings
                   .filter((l) => l.stockStatus === 'IN_STOCK')
@@ -319,6 +365,13 @@ export default function ComponentSelector({
                             <span className="text-xs text-gray-500">{product.model}</span>
                           )}
                         </div>
+
+                        {/* Rating */}
+                        {product.rating && (
+                          <div className="mt-2">
+                            <StarRating rating={product.rating} totalRatings={0} size="sm" showCount={false} />
+                          </div>
+                        )}
 
                         {/* Price & Stock */}
                         <div className="mt-2 flex items-center justify-between">

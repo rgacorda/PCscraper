@@ -25,7 +25,8 @@
       "Bash(npm run build:*)",
       "Bash(BERMOR_MAX_PAGES=1 npx tsx src/scraper/cli.ts:*)",
       "Bash(npm install:*)",
-      "Bash(npm uninstall:*)"
+      "Bash(npm uninstall:*)",
+      "Bash(npm run dev)"
     ],
     "deny": [],
     "ask": []

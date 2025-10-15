@@ -144,14 +144,26 @@ async function scrapeCategoryUrl(
           ) || '';
 
           // Extract rating from star rating element
+          // The rating is in a nested structure: <div class="star-rating"><span style="width:XX%"><strong class="rating">X.X</strong>...</span></div>
           const ratingElement = $el.find('.star-rating');
           let rating: number | undefined;
+
           if (ratingElement.length > 0) {
-            const ratingStyle = ratingElement.attr('style') || '';
-            const widthMatch = ratingStyle.match(/width:\s*(\d+(?:\.\d+)?)\s*%/);
-            if (widthMatch) {
-              // Convert percentage to 5-star rating (e.g., 80% = 4.0 stars)
-              rating = (parseFloat(widthMatch[1]) / 100) * 5;
+            // Try to get rating from aria-label first (e.g., "Rated 4.9 out of 5")
+            const ariaLabel = ratingElement.attr('aria-label') || '';
+            const ariaMatch = ariaLabel.match(/Rated\s+([\d.]+)\s+out\s+of/i);
+
+            if (ariaMatch) {
+              rating = parseFloat(ariaMatch[1]);
+            } else {
+              // Fallback: Try to extract from <strong class="rating"> tag
+              const ratingText = ratingElement.find('strong.rating').text().trim();
+              if (ratingText) {
+                const ratingValue = parseFloat(ratingText);
+                if (!isNaN(ratingValue) && ratingValue > 0) {
+                  rating = ratingValue;
+                }
+              }
             }
           }
 

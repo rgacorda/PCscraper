@@ -4,6 +4,8 @@ import { useState } from 'react';
 import { formatPrice } from '@/lib/utils';
 import ComponentSelector from './ComponentSelector';
 import SaveOptionsModal from './SaveOptionsModal';
+import StarRating from '@/components/StarRating';
+import toast from 'react-hot-toast';
 
 interface BuildItem {
   id: string;
@@ -14,6 +16,7 @@ interface BuildItem {
   retailer: string;
   imageUrl?: string;
   brand?: string;
+  rating?: number;
 }
 
 interface ComponentCategory {
@@ -64,6 +67,7 @@ export default function PCBuilder() {
       retailer: listing.retailer,
       imageUrl: product.imageUrl,
       brand: product.brand,
+      rating: product.rating,
     };
 
     setBuildItems([...buildItems, newItem]);
@@ -99,18 +103,26 @@ export default function PCBuilder() {
       });
 
       if (response.ok) {
-        setSaveMessage('✅ Build saved to homepage!');
+        toast.success('Build saved successfully!', {
+          duration: 3000,
+          icon: '✅',
+        });
         setShowSaveOptions(false);
         setTimeout(() => {
           window.location.href = '/';
         }, 1500);
       } else {
-        setSaveMessage('❌ Failed to save build');
+        const data = await response.json();
+        toast.error(data.error || 'Failed to save build', {
+          duration: 5000,
+        });
         setShowSaveOptions(false);
       }
     } catch (error) {
       console.error('Error saving build:', error);
-      setSaveMessage('❌ Error saving build');
+      toast.error('Error saving build. Please try again.', {
+        duration: 5000,
+      });
       setShowSaveOptions(false);
     } finally {
       setSaving(false);
@@ -152,16 +164,22 @@ export default function PCBuilder() {
         window.URL.revokeObjectURL(url);
         document.body.removeChild(a);
 
-        setSaveMessage('✅ PDF downloaded successfully!');
+        toast.success('PDF downloaded successfully!', {
+          duration: 3000,
+          icon: '📄',
+        });
         setShowSaveOptions(false);
-        setTimeout(() => setSaveMessage(null), 3000);
       } else {
-        setSaveMessage('❌ Failed to generate PDF');
+        toast.error('Failed to generate PDF', {
+          duration: 5000,
+        });
         setShowSaveOptions(false);
       }
     } catch (error) {
       console.error('Error generating PDF:', error);
-      setSaveMessage('❌ Error generating PDF');
+      toast.error('Error generating PDF. Please try again.', {
+        duration: 5000,
+      });
       setShowSaveOptions(false);
     } finally {
       setSaving(false);
@@ -253,7 +271,12 @@ export default function PCBuilder() {
                                   )}
                                   {item.name}
                                 </div>
-                                <div className="text-xs text-gray-500">{item.retailer}</div>
+                                <div className="flex items-center gap-2 mt-1">
+                                  {item.rating && (
+                                    <StarRating rating={item.rating} size="sm" showCount={false} />
+                                  )}
+                                  <div className="text-xs text-gray-500">{item.retailer}</div>
+                                </div>
                               </div>
                             </div>
                           ))}
@@ -337,7 +360,7 @@ export default function PCBuilder() {
             <div>
               <h3 className="font-semibold text-blue-900 mb-1">How to use the PC Builder</h3>
               <ul className="text-sm text-blue-800 space-y-1">
-                <li>• Click "Choose" or the "+" button next to any component to select parts</li>
+                <li>• Click &quot;Choose&quot; or the &quot;+&quot; button next to any component to select parts</li>
                 <li>• Compare prices from multiple Philippine retailers</li>
                 <li>• Add multiple RAM sticks, storage drives, and fans to your build</li>
                 <li>• Save your build to share or reference later</li>
