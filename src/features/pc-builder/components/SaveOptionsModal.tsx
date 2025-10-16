@@ -5,14 +5,14 @@ import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
 
 interface SaveOptionsModalProps {
-  onSaveToHomepage: () => void;
+  onSaveToMyBuilds: () => void;
   onSaveToPDF: () => void;
   onClose: () => void;
   saving: boolean;
 }
 
 export default function SaveOptionsModal({
-  onSaveToHomepage,
+  onSaveToMyBuilds,
   onSaveToPDF,
   onClose,
   saving
@@ -20,7 +20,7 @@ export default function SaveOptionsModal({
   const { data: session, status } = useSession();
   const router = useRouter();
 
-  const handleSaveToHomepage = () => {
+  const handleSaveToMyBuilds = () => {
     if (!session) {
       toast.error('Please sign in to save your build', {
         duration: 4000,
@@ -29,7 +29,7 @@ export default function SaveOptionsModal({
       router.push('/auth/login');
       return;
     }
-    onSaveToHomepage();
+    onSaveToMyBuilds();
   };
 
   return (
@@ -56,25 +56,25 @@ export default function SaveOptionsModal({
 
         {/* Options */}
         <div className="space-y-3">
-          {/* Save to Homepage */}
+          {/* Save to My Builds */}
           <button
-            onClick={handleSaveToHomepage}
+            onClick={handleSaveToMyBuilds}
             disabled={saving || status === 'loading'}
             className="w-full p-4 bg-gradient-to-r from-primary-50 to-blue-50 hover:from-primary-100 hover:to-blue-100 border-2 border-primary-200 hover:border-primary-400 rounded-xl transition-all text-left group disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <div className="flex items-start gap-4">
               <div className="p-3 bg-primary-600 rounded-lg text-white flex-shrink-0">
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
                 </svg>
               </div>
               <div className="flex-1">
                 <h3 className="font-semibold text-gray-900 group-hover:text-primary-700 transition-colors mb-1">
-                  Save to Homepage
+                  Save to My Builds
                   {!session && <span className="text-xs text-orange-600 ml-2">(Sign in required)</span>}
                 </h3>
                 <p className="text-sm text-gray-600">
-                  View and manage your build anytime from the homepage
+                  Save and manage your build in My Builds section
                 </p>
               </div>
               <svg className="w-5 h-5 text-primary-600 mt-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">

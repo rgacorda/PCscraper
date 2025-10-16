@@ -168,39 +168,105 @@ export async function PATCH(
 
     // Update build
     const body = await request.json();
-    const { name, description, isPublic } = body;
+    const { name, description, isPublic, items } = body;
 
-    const updatedBuild = await prisma.build.update({
-      where: { id },
-      data: {
-        ...(name && { name }),
-        ...(description !== undefined && { description }),
-        ...(isPublic !== undefined && { isPublic }),
-      },
-      include: {
-        user: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
+    // If items are provided, delete existing items and create new ones
+    if (items && Array.isArray(items)) {
+      // Delete existing build items
+      await prisma.buildItem.deleteMany({
+        where: { buildId: id },
+      });
+
+      // Calculate total price
+      const totalPrice = await items.reduce(async (sumPromise: Promise<number>, item: any) => {
+        const sum = await sumPromise;
+        const product = await prisma.product.findUnique({
+          where: { id: item.productId },
+          include: {
+            listings: {
+              where: { isActive: true },
+              orderBy: { price: 'asc' },
+              take: 1,
+            },
+          },
+        });
+        const price = product?.listings[0]?.price || 0;
+        return sum + Number(price) * (item.quantity || 1);
+      }, Promise.resolve(0));
+
+      // Update build with new items
+      const updatedBuild = await prisma.build.update({
+        where: { id },
+        data: {
+          ...(name && { name }),
+          ...(description !== undefined && { description }),
+          ...(isPublic !== undefined && { isPublic }),
+          totalPrice,
+          items: {
+            create: items.map((item: any) => ({
+              productId: item.productId,
+              quantity: item.quantity || 1,
+            })),
           },
         },
-        items: {
-          include: {
-            product: {
-              include: {
-                listings: {
-                  where: { isActive: true },
-                  orderBy: { price: 'asc' },
+        include: {
+          user: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+            },
+          },
+          items: {
+            include: {
+              product: {
+                include: {
+                  listings: {
+                    where: { isActive: true },
+                    orderBy: { price: 'asc' },
+                  },
                 },
               },
             },
           },
         },
-      },
-    });
+      });
 
-    return NextResponse.json({ build: updatedBuild });
+      return NextResponse.json({ build: updatedBuild });
+    } else {
+      // Update only metadata
+      const updatedBuild = await prisma.build.update({
+        where: { id },
+        data: {
+          ...(name && { name }),
+          ...(description !== undefined && { description }),
+          ...(isPublic !== undefined && { isPublic }),
+        },
+        include: {
+          user: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+            },
+          },
+          items: {
+            include: {
+              product: {
+                include: {
+                  listings: {
+                    where: { isActive: true },
+                    orderBy: { price: 'asc' },
+                  },
+                },
+              },
+            },
+          },
+        },
+      });
+
+      return NextResponse.json({ build: updatedBuild });
+    }
   } catch (error) {
     console.error('Error updating build:', error);
     return NextResponse.json({ error: 'Failed to update build' }, { status: 500 });

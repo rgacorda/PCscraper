@@ -1,6 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { formatPrice } from '@/lib/utils';
 import ComponentSelector from './ComponentSelector';
 import SaveOptionsModal from './SaveOptionsModal';
@@ -27,12 +28,17 @@ interface ComponentCategory {
 }
 
 export default function PCBuilder() {
+  const searchParams = useSearchParams();
+  const buildId = searchParams.get('build');
+
   const [buildItems, setBuildItems] = useState<BuildItem[]>([]);
   const [buildName, setBuildName] = useState('My PC Build');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [saveMessage, setSaveMessage] = useState<string | null>(null);
   const [showSaveOptions, setShowSaveOptions] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [editingBuildId, setEditingBuildId] = useState<string | null>(null);
 
   // Component categories matching PCPartPicker style
   const componentCategories: ComponentCategory[] = [
@@ -49,6 +55,61 @@ export default function PCBuilder() {
     { key: 'PERIPHERAL', name: 'Keyboard / Mouse', icon: '⌨️', allowMultiple: true },
     { key: 'ACCESSORY', name: 'Accessories', icon: '🔧', allowMultiple: true },
   ];
+
+  // Load existing build if buildId is present
+  useEffect(() => {
+    if (buildId) {
+      loadBuild(buildId);
+    }
+  }, [buildId]);
+
+  const loadBuild = async (id: string) => {
+    setLoading(true);
+    try {
+      const response = await fetch(`/api/builds/${id}`);
+      if (response.ok) {
+        const data = await response.json();
+        const build = data.build;
+
+        // Set build name
+        setBuildName(build.name);
+        setEditingBuildId(id);
+
+        // Convert build items to builder format
+        const items: BuildItem[] = build.items.map((item: any) => {
+          const listing = item.product.listings[0];
+          return {
+            id: `${item.product.id}-${listing?.id || 'no-listing'}-${Date.now()}-${Math.random()}`,
+            productId: item.product.id,
+            name: item.product.name,
+            category: item.product.category,
+            price: listing ? Number(listing.price) : 0,
+            retailer: listing?.retailer || 'Unknown',
+            imageUrl: item.product.imageUrl,
+            brand: item.product.brand,
+            rating: item.product.rating,
+          };
+        });
+
+        setBuildItems(items);
+        toast.success('Build loaded successfully!', {
+          duration: 3000,
+          icon: '📂',
+        });
+      } else {
+        toast.error('Failed to load build', {
+          duration: 5000,
+        });
+      }
+    } catch (error) {
+      console.error('Error loading build:', error);
+      toast.error('Error loading build', {
+        duration: 5000,
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const addItem = (product: any, listing: any) => {
     const category = componentCategories.find(c => c.key === product.category);
@@ -84,39 +145,73 @@ export default function PCBuilder() {
 
   const totalPrice = buildItems.reduce((sum, item) => sum + item.price, 0);
 
-  const handleSaveToHomepage = async () => {
+  const handleSaveToMyBuilds = async () => {
     setSaving(true);
     setSaveMessage(null);
 
     try {
-      const response = await fetch('/api/builds', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name: buildName,
-          description: `PC Build with ${buildItems.length} components`,
-          items: buildItems.map((item) => ({
-            productId: item.productId,
-            quantity: 1,
-          })),
-        }),
-      });
+      if (editingBuildId) {
+        // Update existing build
+        const response = await fetch(`/api/builds/${editingBuildId}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name: buildName,
+            description: `PC Build with ${buildItems.length} components`,
+            items: buildItems.map((item) => ({
+              productId: item.productId,
+              quantity: 1,
+            })),
+          }),
+        });
 
-      if (response.ok) {
-        toast.success('Build saved successfully!', {
-          duration: 3000,
-          icon: '✅',
-        });
-        setShowSaveOptions(false);
-        setTimeout(() => {
-          window.location.href = '/';
-        }, 1500);
+        if (response.ok) {
+          toast.success('Build updated successfully!', {
+            duration: 3000,
+            icon: '✅',
+          });
+          setShowSaveOptions(false);
+          setTimeout(() => {
+            window.location.href = '/my-builds';
+          }, 1500);
+        } else {
+          const data = await response.json();
+          toast.error(data.error || 'Failed to update build', {
+            duration: 5000,
+          });
+          setShowSaveOptions(false);
+        }
       } else {
-        const data = await response.json();
-        toast.error(data.error || 'Failed to save build', {
-          duration: 5000,
+        // Create new build
+        const response = await fetch('/api/builds', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name: buildName,
+            description: `PC Build with ${buildItems.length} components`,
+            items: buildItems.map((item) => ({
+              productId: item.productId,
+              quantity: 1,
+            })),
+          }),
         });
-        setShowSaveOptions(false);
+
+        if (response.ok) {
+          toast.success('Build saved successfully!', {
+            duration: 3000,
+            icon: '✅',
+          });
+          setShowSaveOptions(false);
+          setTimeout(() => {
+            window.location.href = '/my-builds';
+          }, 1500);
+        } else {
+          const data = await response.json();
+          toast.error(data.error || 'Failed to save build', {
+            duration: 5000,
+          });
+          setShowSaveOptions(false);
+        }
       }
     } catch (error) {
       console.error('Error saving build:', error);
@@ -185,6 +280,15 @@ export default function PCBuilder() {
       setSaving(false);
     }
   };
+
+  if (loading) {
+    return (
+      <div className="flex flex-col items-center justify-center py-16">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
+        <p className="mt-4 text-gray-600">Loading build...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -280,6 +384,17 @@ export default function PCBuilder() {
                               </div>
                             </div>
                           ))}
+                          {category.allowMultiple && (
+                            <button
+                              onClick={() => setSelectedCategory(category.key)}
+                              className="text-primary-600 hover:text-primary-700 text-sm font-medium hover:underline flex items-center gap-1 mt-2"
+                            >
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                              </svg>
+                              Add Another {category.name}
+                            </button>
+                          )}
                         </div>
                       ) : (
                         <button
@@ -382,7 +497,7 @@ export default function PCBuilder() {
       {/* Save Options Modal */}
       {showSaveOptions && (
         <SaveOptionsModal
-          onSaveToHomepage={handleSaveToHomepage}
+          onSaveToMyBuilds={handleSaveToMyBuilds}
           onSaveToPDF={handleSaveToPDF}
           onClose={() => setShowSaveOptions(false)}
           saving={saving}

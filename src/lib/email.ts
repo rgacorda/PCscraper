@@ -106,8 +106,7 @@ export async function sendVerificationEmail(email: string, token: string) {
   }
 }
 
-export async function sendPasswordResetEmail(email: string, token: string) {
-  const resetUrl = `${process.env.NEXTAUTH_URL}/auth/reset-password?token=${token}`;
+export async function sendPasswordResetEmail(email: string, name: string, resetUrl: string) {
 
   const mailOptions = {
     from: process.env.EMAIL_FROM || 'noreply@pcbuilder.com',
@@ -169,6 +168,7 @@ export async function sendPasswordResetEmail(email: string, token: string) {
             </div>
             <div class="content">
               <h2>Reset Your Password</h2>
+              <p>Hi ${name},</p>
               <p>We received a request to reset your password. Click the button below to create a new password.</p>
 
               <div style="text-align: center;">

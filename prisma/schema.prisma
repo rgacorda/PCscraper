@@ -42,27 +42,27 @@ enum StockStatus {
 
 // Main Product Model
 model Product {
-  id          String        @id @default(cuid())
+  id          String       @id @default(cuid())
   name        String
   category    PartCategory
   brand       String?
   model       String?
-  description String?       @db.Text
+  description String?      @db.Text
   imageUrl    String?
-  rating      Decimal?      @db.Decimal(3, 2)
+  rating      Decimal?     @db.Decimal(3, 2)
 
   // Aggregated pricing
-  lowestPrice Decimal?      @db.Decimal(10, 2)
-  highestPrice Decimal?     @db.Decimal(10, 2)
+  lowestPrice  Decimal? @db.Decimal(10, 2)
+  highestPrice Decimal? @db.Decimal(10, 2)
 
   // Metadata
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   // Relations
-  listings    ProductListing[]
-  pcBuilds    PCBuildItem[]
-  buildItems  BuildItem[]
+  listings   ProductListing[]
+  pcBuilds   PCBuildItem[]
+  buildItems BuildItem[]
 
   @@index([category])
   @@index([brand])
@@ -72,22 +72,22 @@ model Product {
 
 // Individual Retailer Listings
 model ProductListing {
-  id          String       @id @default(cuid())
-  productId   String
-  product     Product      @relation(fields: [productId], references: [id], onDelete: Cascade)
+  id        String  @id @default(cuid())
+  productId String
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
 
   retailer    Retailer
   retailerUrl String
 
-  price       Decimal      @db.Decimal(10, 2)
-  stockStatus StockStatus  @default(UNKNOWN)
+  price       Decimal     @db.Decimal(10, 2)
+  stockStatus StockStatus @default(UNKNOWN)
 
   // Scraping metadata
-  lastScraped DateTime     @default(now())
-  isActive    Boolean      @default(true)
+  lastScraped DateTime @default(now())
+  isActive    Boolean  @default(true)
 
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@unique([productId, retailer])
   @@index([retailer])
@@ -98,33 +98,33 @@ model ProductListing {
 
 // PC Build Configurations
 model PCBuild {
-  id          String        @id @default(cuid())
+  id          String  @id @default(cuid())
   name        String
-  description String?       @db.Text
+  description String? @db.Text
 
-  totalPrice  Decimal       @default(0) @db.Decimal(10, 2)
+  totalPrice Decimal @default(0) @db.Decimal(10, 2)
 
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   // Relations
-  items       PCBuildItem[]
+  items PCBuildItem[]
 
   @@map("pc_builds")
 }
 
 // Items in a PC Build
 model PCBuildItem {
-  id        String      @id @default(cuid())
-  buildId   String
-  build     PCBuild     @relation(fields: [buildId], references: [id], onDelete: Cascade)
+  id      String  @id @default(cuid())
+  buildId String
+  build   PCBuild @relation(fields: [buildId], references: [id], onDelete: Cascade)
 
   productId String
-  product   Product     @relation(fields: [productId], references: [id])
+  product   Product @relation(fields: [productId], references: [id])
 
-  quantity  Int         @default(1)
+  quantity Int @default(1)
 
-  createdAt DateTime    @default(now())
+  createdAt DateTime @default(now())
 
   @@unique([buildId, productId])
   @@map("pc_build_items")
@@ -132,15 +132,15 @@ model PCBuildItem {
 
 // Scraping Jobs Log
 model ScrapeJob {
-  id          String    @id @default(cuid())
-  retailer    Retailer
-  status      String    // "running", "completed", "failed"
+  id       String   @id @default(cuid())
+  retailer Retailer
+  status   String // "running", "completed", "failed"
 
-  itemsScraped Int      @default(0)
-  itemsUpdated Int      @default(0)
-  itemsFailed  Int      @default(0)
+  itemsScraped Int @default(0)
+  itemsUpdated Int @default(0)
+  itemsFailed  Int @default(0)
 
-  error       String?   @db.Text
+  error String? @db.Text
 
   startedAt   DateTime  @default(now())
   completedAt DateTime?
@@ -190,11 +190,13 @@ model User {
   image         String?
   password      String?
 
-  accounts      Account[]
-  sessions      Session[]
-  builds        Build[]
-  buildRatings  BuildRating[]
-  buildComments BuildComment[]
+  accounts            Account[]
+  sessions            Session[]
+  builds              Build[]
+  buildRatings        BuildRating[]
+  buildComments       BuildComment[]
+  buildFavorites      BuildFavorite[]
+  passwordResetTokens PasswordResetToken[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -211,12 +213,27 @@ model VerificationToken {
   @@map("verification_tokens")
 }
 
+model PasswordResetToken {
+  id        String   @id @default(cuid())
+  userId    String
+  token     String   @unique
+  expires   DateTime
+  used      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([token])
+  @@map("password_reset_tokens")
+}
+
 // Build Rating System
 model BuildRating {
-  id      String  @id @default(cuid())
+  id      String @id @default(cuid())
   buildId String
   userId  String
-  rating  Int     // 1-5 stars
+  rating  Int // 1-5 stars
 
   build Build @relation(fields: [buildId], references: [id], onDelete: Cascade)
   user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -248,23 +265,41 @@ model BuildComment {
   @@map("build_comments")
 }
 
+// Build Favorites System
+model BuildFavorite {
+  id      String @id @default(cuid())
+  buildId String
+  userId  String
+
+  build Build @relation(fields: [buildId], references: [id], onDelete: Cascade)
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@unique([buildId, userId])
+  @@index([buildId])
+  @@index([userId])
+  @@map("build_favorites")
+}
+
 // Enhanced Build Model
 model Build {
-  id          String   @id @default(cuid())
+  id          String  @id @default(cuid())
   name        String
-  description String?  @db.Text
-  isPublic    Boolean  @default(false)
+  description String? @db.Text
+  isPublic    Boolean @default(false)
   userId      String?
 
-  totalPrice  Decimal  @default(0) @db.Decimal(10, 2)
+  totalPrice Decimal @default(0) @db.Decimal(10, 2)
 
-  user        User?          @relation(fields: [userId], references: [id], onDelete: SetNull)
-  items       BuildItem[]
-  ratings     BuildRating[]
-  comments    BuildComment[]
+  user      User?           @relation(fields: [userId], references: [id], onDelete: SetNull)
+  items     BuildItem[]
+  ratings   BuildRating[]
+  comments  BuildComment[]
+  favorites BuildFavorite[]
 
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([userId])
   @@index([isPublic])
@@ -273,10 +308,10 @@ model Build {
 
 // Enhanced Build Items
 model BuildItem {
-  id        String   @id @default(cuid())
+  id        String @id @default(cuid())
   buildId   String
   productId String
-  quantity  Int      @default(1)
+  quantity  Int    @default(1)
 
   build   Build   @relation(fields: [buildId], references: [id], onDelete: Cascade)
   product Product @relation(fields: [productId], references: [id])

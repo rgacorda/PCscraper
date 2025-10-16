@@ -11,7 +11,7 @@ export async function GET(request: NextRequest) {
     const userId = searchParams.get('userId');
 
     // Build query based on authentication and filters
-    let whereClause: any = {};
+    const whereClause: any = {};
 
     if (userId) {
       // Fetch specific user's builds

@@ -35,6 +35,12 @@ interface BuildDetails {
       category: string;
       brand?: string;
       imageUrl?: string;
+      listings: Array<{
+        id: string;
+        retailer: string;
+        price: number;
+        retailerUrl: string;
+      }>;
     };
   }>;
   ratings: Array<{
@@ -227,38 +233,64 @@ export default function BuildDetailsModal({
               <div>
                 <h3 className="font-semibold text-gray-900 mb-3">Components</h3>
                 <div className="space-y-2">
-                  {build.items.map((item) => (
-                    <div
-                      key={item.id}
-                      className="flex items-center gap-4 p-3 bg-gray-50 rounded-lg border border-gray-200"
-                    >
-                      {item.product.imageUrl ? (
-                        <img
-                          src={item.product.imageUrl}
-                          alt={item.product.name}
-                          className="w-16 h-16 object-cover rounded-lg"
-                        />
-                      ) : (
-                        <div className="w-16 h-16 bg-gray-200 rounded-lg flex items-center justify-center">
-                          <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                          </svg>
+                  {build.items.map((item) => {
+                    const cheapestListing = item.product.listings[0];
+                    const ItemWrapper = cheapestListing ? 'a' : 'div';
+                    const wrapperProps = cheapestListing
+                      ? {
+                          href: cheapestListing.retailerUrl,
+                          target: '_blank',
+                          rel: 'noopener noreferrer',
+                          className: 'flex items-center gap-4 p-3 bg-gray-50 hover:bg-primary-50 rounded-lg border border-gray-200 hover:border-primary-300 transition-all group cursor-pointer',
+                        }
+                      : {
+                          className: 'flex items-center gap-4 p-3 bg-gray-50 rounded-lg border border-gray-200',
+                        };
+
+                    return (
+                      <ItemWrapper key={item.id} {...wrapperProps}>
+                        {item.product.imageUrl ? (
+                          <img
+                            src={item.product.imageUrl}
+                            alt={item.product.name}
+                            className="w-16 h-16 object-cover rounded-lg"
+                          />
+                        ) : (
+                          <div className="w-16 h-16 bg-gray-200 rounded-lg flex items-center justify-center">
+                            <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                            </svg>
+                          </div>
+                        )}
+                        <div className="flex-1">
+                          <p className="font-medium text-gray-900 group-hover:text-primary-700 transition-colors">
+                            {item.product.name}
+                          </p>
+                          <div className="flex items-center gap-2 mt-1">
+                            <span className="badge-info text-xs">{item.product.category}</span>
+                            {item.product.brand && (
+                              <span className="text-xs text-gray-500">{item.product.brand}</span>
+                            )}
+                            {cheapestListing && (
+                              <span className="text-xs text-primary-600 font-medium">
+                                {formatPrice(Number(cheapestListing.price))} @ {cheapestListing.retailer}
+                              </span>
+                            )}
+                          </div>
                         </div>
-                      )}
-                      <div className="flex-1">
-                        <p className="font-medium text-gray-900">{item.product.name}</p>
-                        <div className="flex items-center gap-2 mt-1">
-                          <span className="badge-info text-xs">{item.product.category}</span>
-                          {item.product.brand && (
-                            <span className="text-xs text-gray-500">{item.product.brand}</span>
+                        <div className="flex items-center gap-2">
+                          {item.quantity > 1 && (
+                            <span className="text-sm text-gray-600">×{item.quantity}</span>
+                          )}
+                          {cheapestListing && (
+                            <svg className="w-5 h-5 text-gray-400 group-hover:text-primary-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                            </svg>
                           )}
                         </div>
-                      </div>
-                      {item.quantity > 1 && (
-                        <span className="text-sm text-gray-600">×{item.quantity}</span>
-                      )}
-                    </div>
-                  ))}
+                      </ItemWrapper>
+                    );
+                  })}
                 </div>
                 <div className="mt-4 pt-4 border-t border-gray-200">
                   <div className="flex items-center justify-between">
