@@ -6,197 +6,236 @@
 - PostgreSQL database
 - Vercel account (for Vercel deployment) or Docker (for containerized deployment)
 
-## Local Development
+## Quick Deploy to Vercel
 
-1. **Clone and Install**
-   ```bash
-   git clone <repository-url>
-   cd PCscraper
-   npm install
-   ```
+### 1. Push to GitHub
 
-2. **Set Up Environment**
-   ```bash
-   cp .env.example .env
-   ```
-   Edit `.env` and configure your database URL and other settings.
-
-3. **Database Setup**
-   ```bash
-   npx prisma generate
-   npx prisma db push
-   ```
-
-4. **Run Development Server**
-   ```bash
-   npm run dev
-   ```
-   Visit [http://localhost:3000](http://localhost:3000)
-
-## Production Deployment
-
-### Option 1: Vercel (Recommended)
-
-1. **Install Vercel CLI**
-   ```bash
-   npm install -g vercel
-   ```
-
-2. **Set Environment Variables**
-   - Log in to [Vercel Dashboard](https://vercel.com/dashboard)
-   - Add your project
-   - Set environment variables:
-     - `DATABASE_URL`: Your PostgreSQL connection string
-     - `CRON_SECRET`: Random secret for cron job authentication
-     - `SCRAPER_USER_AGENT`: Custom user agent string
-
-3. **Deploy**
-   ```bash
-   vercel --prod
-   ```
-
-4. **Configure Database**
-   - Use [Vercel Postgres](https://vercel.com/docs/storage/vercel-postgres)
-   - Or external PostgreSQL (Railway, Supabase, etc.)
-
-5. **Cron Jobs**
-   - Cron jobs are automatically configured via `vercel.json`
-   - Scraping runs daily at 2 AM (configurable)
-
-### Option 2: Docker
-
-1. **Build and Run with Docker Compose**
-   ```bash
-   docker-compose up -d
-   ```
-
-2. **Run Database Migrations**
-   ```bash
-   docker-compose exec app npx prisma db push
-   ```
-
-3. **Access Application**
-   - Application: [http://localhost:3000](http://localhost:3000)
-   - Database: localhost:5432
-
-### Option 3: Railway
-
-1. **Install Railway CLI**
-   ```bash
-   npm install -g @railway/cli
-   ```
-
-2. **Initialize Project**
-   ```bash
-   railway init
-   ```
-
-3. **Add PostgreSQL**
-   ```bash
-   railway add postgresql
-   ```
-
-4. **Deploy**
-   ```bash
-   railway up
-   ```
-
-## Post-Deployment
-
-### Initialize Database
-
-Run Prisma migrations:
 ```bash
+git add .
+git commit -m "Ready for deployment"
+git push origin main
+```
+
+### 2. Deploy on Vercel
+
+1. Go to [Vercel Dashboard](https://vercel.com/dashboard)
+2. Click "New Project"
+3. Import your GitHub repository
+4. Configure environment variables (see below)
+5. Click "Deploy"
+
+### 3. Set Environment Variables
+
+Add these in Vercel Project Settings → Environment Variables:
+
+```bash
+# Database
+DATABASE_URL=your_postgresql_connection_string
+
+# NextAuth
+NEXTAUTH_SECRET=generate_random_string_here
+NEXTAUTH_URL=https://your-domain.vercel.app
+
+# App
+NODE_ENV=production
+NEXT_PUBLIC_APP_URL=https://your-domain.vercel.app
+
+# Optional - Scraping
+SCRAPER_TIMEOUT=30000
+SCRAPER_MAX_RETRIES=3
+BERMOR_MAX_PAGES=50
+```
+
+### 4. Database Options
+
+**Option A: Vercel Postgres (Recommended)**
+- Easy integration with Vercel
+- Automatic connection string
+- [Setup Guide](https://vercel.com/docs/storage/vercel-postgres)
+
+**Option B: External PostgreSQL**
+- [Railway](https://railway.app/) - Free tier available
+- [Supabase](https://supabase.com/) - Free PostgreSQL hosting
+- [Neon](https://neon.tech/) - Serverless Postgres
+
+### 5. Run Database Migrations
+
+After deployment, run migrations:
+
+```bash
+# Install Vercel CLI
+npm install -g vercel
+
+# Link to your project
+vercel link
+
+# Run migration
+vercel env pull .env.local
 npx prisma db push
 ```
 
-### Trigger First Scrape
+## Docker Deployment
 
-Manually trigger scraping via API:
+### Using Docker Compose
 
 ```bash
-curl -X POST https://your-domain.com/api/scrape \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer YOUR_CRON_SECRET" \
-  -d '{"retailer": "DATABLITZ"}'
+# Build and start
+docker-compose up -d
+
+# Run migrations
+docker-compose exec app npx prisma db push
+
+# View logs
+docker-compose logs -f app
+
+# Stop
+docker-compose down
 ```
 
-Retailers: `DATABLITZ`, `PCWORTH`, `BERMOR`
+### Custom Docker Setup
 
-### Monitoring
+```bash
+# Build image
+docker build -t pc-parts-aggregator .
 
-- Check scraping job status in database: `ScrapeJob` table
-- Monitor application logs
-- Set up error tracking (e.g., Sentry)
+# Run container
+docker run -p 3000:3000 \
+  -e DATABASE_URL="your_db_url" \
+  -e NEXTAUTH_SECRET="your_secret" \
+  pc-parts-aggregator
+```
+
+## Railway Deployment
+
+```bash
+# Install Railway CLI
+npm install -g @railway/cli
+
+# Login
+railway login
+
+# Initialize project
+railway init
+
+# Add PostgreSQL
+railway add
+
+# Set environment variables
+railway variables set NEXTAUTH_SECRET=your_secret
+railway variables set NODE_ENV=production
+
+# Deploy
+railway up
+```
+
+## Post-Deployment
+
+### 1. Verify Deployment
+
+Check these endpoints:
+- `https://your-domain.com` - Homepage
+- `https://your-domain.com/api/products` - Products API
+- `https://your-domain.com/builder` - PC Builder
+
+### 2. Create First User
+
+Visit `/auth/register` to create an admin account
+
+### 3. Test Features
+
+- [ ] User registration and login
+- [ ] Browse products
+- [ ] Build PC configuration
+- [ ] Save and share builds
+- [ ] Rate and comment on builds
 
 ## Environment Variables Reference
 
 | Variable | Description | Required |
 |----------|-------------|----------|
 | `DATABASE_URL` | PostgreSQL connection string | Yes |
-| `NODE_ENV` | Environment (development/production) | Yes |
+| `NEXTAUTH_SECRET` | NextAuth encryption key | Yes |
+| `NEXTAUTH_URL` | Full app URL | Yes |
+| `NODE_ENV` | Environment (production) | Yes |
 | `NEXT_PUBLIC_APP_URL` | Public app URL | Yes |
-| `CRON_SECRET` | Secret for cron authentication | Production only |
 | `SCRAPER_TIMEOUT` | Scraper timeout (ms) | No |
 | `SCRAPER_MAX_RETRIES` | Max retry attempts | No |
-| `SCRAPER_USER_AGENT` | Custom user agent | No |
+| `BERMOR_MAX_PAGES` | Pages to scrape | No |
 
 ## Troubleshooting
 
+### Build Failures
+
+```bash
+# Clear cache and rebuild locally
+rm -rf .next node_modules
+npm install
+npm run build
+```
+
 ### Database Connection Issues
-- Verify `DATABASE_URL` format
-- Check database firewall rules
-- Ensure Prisma client is generated: `npx prisma generate`
 
-### Scraping Failures
-- Check target website availability
-- Verify selectors in scraper files
-- Review rate limiting configuration
+1. Verify `DATABASE_URL` format
+2. Check SSL requirements (add `?sslmode=require` if needed)
+3. Ensure database is accessible from deployment platform
 
-### Build Errors
-- Clear `.next` folder: `rm -rf .next`
-- Clear node_modules: `rm -rf node_modules && npm install`
-- Regenerate Prisma client: `npx prisma generate`
+### NextAuth Errors
+
+1. Set strong `NEXTAUTH_SECRET` (min 32 characters)
+2. Verify `NEXTAUTH_URL` matches your domain
+3. Check callback URLs in auth providers
 
 ## Performance Optimization
 
-1. **Database Indexing**: Already configured in Prisma schema
-2. **Caching**: Consider adding Redis for API responses
-3. **Image Optimization**: Use Next.js Image component
-4. **CDN**: Enable on Vercel or CloudFlare
+1. **Enable CDN**: Automatic on Vercel
+2. **Image Optimization**: Using Next.js Image component
+3. **Database Indexing**: Already configured in Prisma schema
+4. **Caching**: Consider adding Redis for API responses
 
 ## Security Checklist
 
-- [ ] Set strong `CRON_SECRET`
-- [ ] Enable HTTPS in production
-- [ ] Configure CORS appropriately
-- [ ] Set rate limiting for API routes
-- [ ] Regular security updates: `npm audit fix`
-- [ ] Database backups configured
+- [ ] Strong `NEXTAUTH_SECRET` generated
+- [ ] HTTPS enabled (automatic on Vercel)
+- [ ] Database SSL enabled
+- [ ] CORS configured appropriately
+- [ ] Regular dependency updates
+
+## Monitoring
+
+- **Vercel**: Built-in analytics and logs
+- **Railway**: Dashboard monitoring
+- **Sentry**: Error tracking (optional)
+- **Database**: Monitor connection pool usage
+
+## Backup Strategy
+
+1. **Database Backups**
+   - Vercel Postgres: Automatic daily backups
+   - Railway: Automatic backups on Pro plan
+   - External: Configure backup schedule
+
+2. **Code Backups**
+   - Git repository serves as code backup
+   - Tag releases: `git tag v1.0.0`
 
 ## Maintenance
 
 ### Update Dependencies
+
 ```bash
 npm update
 npm audit fix
 ```
 
 ### Database Migrations
+
 ```bash
-npx prisma migrate dev
 npx prisma migrate deploy
 ```
 
-### Monitor Scraping Jobs
-```bash
-# Via Prisma Studio
-npx prisma studio
-```
+## Support Resources
 
-## Support
-
-For issues and questions:
-- Check logs in Vercel/Railway dashboard
-- Review GitHub issues
-- Consult documentation in `/src` subdirectories
+- [Next.js Deployment Docs](https://nextjs.org/docs/deployment)
+- [Vercel Documentation](https://vercel.com/docs)
+- [Prisma Deployment Guide](https://www.prisma.io/docs/guides/deployment)
+- [NextAuth.js Deployment](https://next-auth.js.org/deployment)

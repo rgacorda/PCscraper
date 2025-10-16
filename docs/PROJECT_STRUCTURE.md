@@ -4,15 +4,17 @@
 
 ```
 PCscraper/
-├── .vscode/                    # VSCode editor settings
-│   ├── settings.json          # Editor configuration
-│   └── extensions.json        # Recommended extensions
-├── prisma/                     # Database schema and migrations
-│   └── schema.prisma          # Prisma database schema
+├── docs/                       # Documentation
+│   ├── DEPLOYMENT.md          # Deployment guide
+│   ├── PROJECT_STRUCTURE.md   # This file
+│   ├── QUICKSTART.md          # Quick start guide
+│   └── SCRAPER_SETUP.md       # Scraper configuration
+├── prisma/                     # Database
+│   ├── migrations/            # Database migrations
+│   └── schema.prisma          # Database schema
 ├── scripts/                    # Utility scripts
-│   ├── setup.sh               # Automated setup script
-│   └── seed.ts                # Database seeding script
-├── src/                        # Application source code
+│   └── setup.sh               # Setup script
+├── src/                        # Application source
 │   ├── app/                   # Next.js App Router
 │   │   ├── api/               # API routes
 │   │   │   ├── products/      # Products endpoint

@@ -28,7 +28,8 @@
       "Bash(npm uninstall:*)",
       "Bash(npm run dev)",
       "Bash(npx prisma migrate resolve:*)",
-      "Bash(npx prisma format:*)"
+      "Bash(npx prisma format:*)",
+      "Bash(find:*)"
     ],
     "deny": [],
     "ask": []

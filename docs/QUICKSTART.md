@@ -1,6 +1,6 @@
 # Quick Start Guide
 
-Get your PH PC Parts Aggregator up and running in minutes!
+Get your PH PC Parts Aggregator running in minutes!
 
 ## Prerequisites
 
@@ -10,7 +10,7 @@ Get your PH PC Parts Aggregator up and running in minutes!
 
 ## Installation
 
-### Option 1: Automated Setup (Recommended)
+### Automated Setup (Recommended)
 
 ```bash
 # Run the setup script
@@ -24,7 +24,7 @@ The script will:
 - Generate Prisma client
 - Initialize database
 
-### Option 2: Manual Setup
+### Manual Setup
 
 ```bash
 # 1. Install dependencies
@@ -36,10 +36,8 @@ cp .env.example .env
 # 3. Edit .env with your database credentials
 # DATABASE_URL="postgresql://user:password@localhost:5432/pc_parts_db"
 
-# 4. Generate Prisma client
+# 4. Generate Prisma client and initialize database
 npx prisma generate
-
-# 5. Initialize database
 npx prisma db push
 ```
 
@@ -52,10 +50,13 @@ Edit `.env` file:
 DATABASE_URL="postgresql://postgres:postgres@localhost:5432/pc_parts_db?schema=public"
 NODE_ENV="development"
 NEXT_PUBLIC_APP_URL="http://localhost:3000"
+NEXTAUTH_SECRET="your-secret-key-here"
+NEXTAUTH_URL="http://localhost:3000"
 
-# Optional
+# Optional - Scraping
 SCRAPER_TIMEOUT=30000
 SCRAPER_MAX_RETRIES=3
+BERMOR_MAX_PAGES=50
 ```
 
 ## Start Development Server
@@ -66,33 +67,27 @@ npm run dev
 
 Visit [http://localhost:3000](http://localhost:3000)
 
-## First Steps
+## Key Features
 
-### 1. Seed Sample Data (Optional)
+### 1. Browse Products
+- Filter by category and retailer
+- Search by name/brand
+- Compare prices across retailers
+- View product details with ratings
 
-```bash
-npx tsx scripts/seed.ts
-```
+### 2. PC Builder
+- Build custom PC configurations
+- Select components by category
+- Real-time price calculation
+- Save and share builds
+- Export builds as PDF
 
-This creates sample products with listings from all retailers.
-
-### 2. Browse Products
-
-Navigate to [http://localhost:3000](http://localhost:3000) to see the product listing page.
-
-### 3. Try PC Builder
-
-Visit [http://localhost:3000/builder](http://localhost:3000/builder) to build a PC configuration.
-
-### 4. Trigger Scraping
-
-```bash
-curl -X POST http://localhost:3000/api/scrape \
-  -H "Content-Type: application/json" \
-  -d '{"retailer": "DATABLITZ"}'
-```
-
-Available retailers: `DATABLITZ`, `PCWORTH`, `BERMOR`
+### 3. User Features
+- User registration and authentication
+- Save favorite builds
+- Rate and comment on public builds
+- Manage user profile
+- View build gallery
 
 ## Common Tasks
 
@@ -102,19 +97,7 @@ Available retailers: `DATABLITZ`, `PCWORTH`, `BERMOR`
 npx prisma studio
 ```
 
-Opens a web interface at [http://localhost:5555](http://localhost:5555)
-
-### Check Types
-
-```bash
-npm run type-check
-```
-
-### Lint Code
-
-```bash
-npm run lint
-```
+Opens web interface at [http://localhost:5555](http://localhost:5555)
 
 ### Build for Production
 
@@ -123,110 +106,31 @@ npm run build
 npm start
 ```
 
-## Using Docker
-
-### Start with Docker Compose
+### Docker Setup
 
 ```bash
 docker-compose up -d
 ```
 
-This starts:
-- PostgreSQL on port 5432
-- Application on port 3000
-
-### Run Migrations
-
-```bash
-docker-compose exec app npx prisma db push
-```
-
-### View Logs
-
-```bash
-docker-compose logs -f app
-```
-
-### Stop Services
-
-```bash
-docker-compose down
-```
-
-## Project Structure
-
-```
-PCscraper/
-├── src/
-│   ├── app/              # Next.js pages and API routes
-│   ├── features/         # Feature modules
-│   ├── lib/              # Utilities
-│   └── scraper/          # Web scraping logic
-├── prisma/
-│   └── schema.prisma     # Database schema
-├── scripts/
-│   ├── setup.sh          # Setup script
-│   └── seed.ts           # Seed data
-└── package.json
-```
-
-## Key Features
-
-### 1. Product Browsing
-- Filter by category
-- Search by name/brand
-- View prices from multiple retailers
-- Check stock status
-
-### 2. PC Builder
-- Select components by category
-- Real-time price calculation
-- Build summary
-- Save configurations
-
-### 3. Price Aggregation
-- Automated scraping from retailers
-- Price comparison
-- Stock tracking
-- Historical data
-
 ## API Endpoints
 
-### Get Products
-
+### Products
 ```bash
 GET /api/products?category=CPU&search=AMD&page=1&limit=20
 ```
 
-### Trigger Scraping
-
+### Builds
 ```bash
-POST /api/scrape
-Content-Type: application/json
-
-{
-  "retailer": "DATABLITZ"
-}
+GET /api/builds          # Get public builds
+POST /api/builds         # Create new build
+GET /api/builds/[id]     # Get build details
 ```
 
-## Environment Modes
-
-### Development
+### User
 ```bash
-NODE_ENV=development npm run dev
+GET /api/user/profile    # Get user profile
+PUT /api/user/profile    # Update profile
 ```
-- Hot reload
-- Detailed error messages
-- Development tools enabled
-
-### Production
-```bash
-NODE_ENV=production npm run build
-NODE_ENV=production npm start
-```
-- Optimized builds
-- Minimal error details
-- Performance optimizations
 
 ## Troubleshooting
 
@@ -244,10 +148,7 @@ PORT=3001 npm run dev
 
 1. Ensure PostgreSQL is running
 2. Verify DATABASE_URL in `.env`
-3. Check database exists:
-   ```bash
-   psql -U postgres -l
-   ```
+3. Check database exists
 
 ### Prisma Client Not Generated
 
@@ -255,68 +156,18 @@ PORT=3001 npm run dev
 npx prisma generate
 ```
 
-### Build Errors
-
-```bash
-# Clear cache and rebuild
-rm -rf .next node_modules
-npm install
-npm run build
-```
-
-### Scraping Errors
-
-- Check target website is accessible
-- Verify selectors in scraper files
-- Review network connectivity
-- Check rate limiting
-
 ## Next Steps
 
-1. **Customize Scrapers**: Edit files in `src/scraper/retailers/`
-2. **Add Features**: Extend PC Builder functionality
-3. **Deploy**: Follow [DEPLOYMENT.md](DEPLOYMENT.md)
-4. **Explore Docs**:
-   - [Scraper Documentation](src/scraper/README.md)
-   - [API Documentation](src/features/api/README.md)
-   - [PC Builder Docs](src/features/pc-builder/README.md)
-
-## Getting Help
-
-- **Documentation**: Check README files in feature directories
-- **Logs**: Review terminal output and browser console
-- **Database**: Use Prisma Studio to inspect data
-- **Issues**: Check GitHub issues or create new one
-
-## Development Tips
-
-1. **Use TypeScript**: Leverage type safety
-2. **Hot Reload**: Changes auto-refresh in dev mode
-3. **Database GUI**: Use Prisma Studio for data management
-4. **API Testing**: Use Postman or curl for API testing
-5. **Git Workflow**: Commit frequently with clear messages
-
-## Production Checklist
-
-Before deploying to production:
-
-- [ ] Set strong DATABASE_URL password
-- [ ] Configure CRON_SECRET
-- [ ] Set NODE_ENV to "production"
-- [ ] Enable HTTPS
-- [ ] Configure CORS
-- [ ] Set up error monitoring
-- [ ] Configure database backups
-- [ ] Test all API endpoints
-- [ ] Verify scraper functionality
-- [ ] Review security headers
+1. **Deploy**: Follow [DEPLOYMENT.md](DEPLOYMENT.md)
+2. **Customize**: Review [PROJECT_STRUCTURE.md](PROJECT_STRUCTURE.md)
+3. **Configure Scraping**: See [SCRAPER_SETUP.md](SCRAPER_SETUP.md)
 
 ## Resources
 
 - [Next.js Docs](https://nextjs.org/docs)
 - [Prisma Docs](https://www.prisma.io/docs)
-- [Tailwind CSS](https://tailwindcss.com)
-- [TypeScript Handbook](https://www.typescriptlang.org/docs/)
+- [Tailwind CSS](https://tailwindcss.com/docs)
+- [NextAuth.js](https://next-auth.js.org/)
 
 ---
 
