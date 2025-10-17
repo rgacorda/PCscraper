@@ -1,21 +1,54 @@
 import nodemailer from 'nodemailer';
+import { google } from 'googleapis';
 
-// Create reusable transporter
-const transporter = nodemailer.createTransport({
-  host: process.env.EMAIL_SERVER_HOST || 'smtp.gmail.com',
-  port: parseInt(process.env.EMAIL_SERVER_PORT || '587'),
-  secure: false, // true for 465, false for other ports
+// Always use Gmail OAuth2 transport (production-only)
+const oauth2Client = new google.auth.OAuth2(
+  process.env.GOOGLE_CLIENT_ID,
+  process.env.GOOGLE_CLIENT_SECRET,
+  process.env.GOOGLE_OAUTH_REDIRECT_URL || 'http://localhost:3000/oauth/callback'
+);
+
+oauth2Client.setCredentials({
+  refresh_token: process.env.GOOGLE_REFRESH_TOKEN,
+});
+
+async function getAccessToken(): Promise<string | undefined> {
+  try {
+    const res = await oauth2Client.getAccessToken();
+    return (res as any)?.token ?? (res as string | undefined);
+  } catch (error) {
+    console.error('Error getting access token:', error);
+    throw error;
+  }
+}
+
+const transporter: any = nodemailer.createTransport({
+  service: 'gmail',
   auth: {
-    user: process.env.EMAIL_SERVER_USER,
-    pass: process.env.EMAIL_SERVER_PASSWORD,
+    type: 'OAuth2',
+    user: process.env.GMAIL_OAUTH_USER,
+    clientId: process.env.GOOGLE_CLIENT_ID,
+    clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+    refreshToken: process.env.GOOGLE_REFRESH_TOKEN,
+    accessToken: getAccessToken, // function that returns token
   },
 });
 
+transporter.verify((err: Error | null) => {
+  if (err) {
+    console.error('Error connecting to Gmail:', err);
+  } else {
+    console.log('Mailer ready ✅');
+  }
+});
+
 export async function sendVerificationEmail(email: string, token: string) {
-  const verificationUrl = `${process.env.NEXTAUTH_URL}/api/auth/verify?token=${token}`;
+  const verificationUrl = `${
+    process.env.NEXTAUTH_URL || process.env.NEXT_PUBLIC_APP_URL
+  }/api/auth/verify?token=${token}`;
 
   const mailOptions = {
-    from: process.env.EMAIL_FROM || 'noreply@pcbuilder.com',
+    from: `PC Builder Support <${process.env.EMAIL_FROM}>`,
     to: email,
     subject: 'Verify your email address',
     html: `
@@ -98,18 +131,22 @@ export async function sendVerificationEmail(email: string, token: string) {
   };
 
   try {
-    await transporter.sendMail(mailOptions);
-    console.log('Verification email sent to:', email);
+    const info = await transporter.sendMail(mailOptions);
+    console.log('Verification email sent to:', email, 'messageId:', info?.messageId);
+    return info;
   } catch (error) {
     console.error('Failed to send verification email:', error);
     throw error;
   }
 }
 
-export async function sendPasswordResetEmail(email: string, name: string, resetUrl: string) {
-
+export async function sendPasswordResetEmail(
+  email: string,
+  name: string,
+  resetUrl: string
+) {
   const mailOptions = {
-    from: process.env.EMAIL_FROM || 'noreply@pcbuilder.com',
+    from: `PC Builder Support <${process.env.EMAIL_FROM}>`,
     to: email,
     subject: 'Reset your password',
     html: `
@@ -193,8 +230,9 @@ export async function sendPasswordResetEmail(email: string, name: string, resetU
   };
 
   try {
-    await transporter.sendMail(mailOptions);
-    console.log('Password reset email sent to:', email);
+    const info = await transporter.sendMail(mailOptions);
+    console.log('Password reset email sent to:', email, 'messageId:', info?.messageId);
+    return info;
   } catch (error) {
     console.error('Failed to send password reset email:', error);
     throw error;

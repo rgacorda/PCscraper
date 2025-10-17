@@ -1,70 +1,67 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
+import { randomBytes } from 'crypto';
 import { sendPasswordResetEmail } from '@/lib/email';
-import crypto from 'crypto';
 
-// POST - Request password reset
+// POST - Request password reset: create token and send email
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     const { email } = body;
 
-    if (!email || !email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) {
-      return NextResponse.json(
-        { error: 'Valid email is required' },
-        { status: 400 }
-      );
+    if (!email) {
+      return NextResponse.json({ error: 'Email is required' }, { status: 400 });
     }
 
-    // Find user by email
     const user = await prisma.user.findUnique({
-      where: { email: email.toLowerCase() },
-      select: { id: true, email: true, name: true, password: true },
+      where: { email },
+      select: { id: true, name: true, email: true },
     });
 
-    // Always return success message (security - don't reveal if email exists)
-    const successMessage = 'If an account with that email exists, a password reset link has been sent.';
+    // Always respond with a success message to avoid account enumeration,
+    // but only create token/send email if user exists.
+    const genericResponse = NextResponse.json(
+      {
+        message:
+          'If an account with that email exists, a password reset email has been sent.',
+      },
+      { status: 200 }
+    );
 
-    if (!user || !user.password) {
-      // User doesn't exist or uses OAuth - but don't reveal this
-      return NextResponse.json({ message: successMessage });
+    if (!user) {
+      return genericResponse;
     }
 
-    // Generate unique reset token
-    const token = crypto.randomBytes(32).toString('hex');
-    const expires = new Date(Date.now() + 3600000); // 1 hour from now
+    // Optionally remove previous tokens for this user
+    await prisma.passwordResetToken.deleteMany({ where: { userId: user.id } });
 
-    // Delete any existing reset tokens for this user
-    await prisma.passwordResetToken.deleteMany({
-      where: { userId: user.id },
-    });
+    const token = randomBytes(32).toString('hex');
+    const expires = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
 
-    // Create new reset token
     await prisma.passwordResetToken.create({
       data: {
-        userId: user.id,
         token,
+        userId: user.id,
         expires,
+        used: false,
       },
     });
 
-    // Generate reset URL
-    const resetUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/auth/reset-password?token=${token}`;
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL
+    const resetUrl = `${baseUrl}/auth/reset-password?token=${token}`;
 
-    // Send password reset email (prepared but not functional yet)
     try {
-      await sendPasswordResetEmail(user.email || '', user.name || 'User', resetUrl);
-    } catch (emailError) {
-      console.log('Email sending not yet configured - reset token created:', token);
-      console.log('Reset URL:', resetUrl);
-      // Don't fail the request if email fails - token is still valid
+      await sendPasswordResetEmail(user.email as string, user.name ?? 'User', resetUrl);
+    } catch (mailErr) {
+      console.error('Failed to send password reset email:', mailErr);
+      // Do not leak mail errors to the client; still return generic success.
     }
 
-    return NextResponse.json({ message: successMessage });
+    return genericResponse;
   } catch (error) {
-    console.error('Error processing password reset request:', error);
+    console.error('Error requesting password reset:', error);
     return NextResponse.json(
-      { error: 'Failed to process password reset request' },
+      { error: 'Failed to request password reset' },
       { status: 500 }
     );
   }

@@ -57,10 +57,12 @@ export default function ForgotPasswordPage() {
             </div>
             <h2 className="text-2xl font-bold text-gray-900 mb-2">Check Your Email</h2>
             <p className="text-gray-600 mb-6">
-              If an account exists with <strong>{email}</strong>, we&apos;ve sent you a password reset link.
+              If an account exists with <strong>{email}</strong>, we&apos;ve sent you a
+              password reset link.
             </p>
             <p className="text-sm text-gray-500 mb-6">
-              The link will expire in 1 hour. If you don&apos;t see the email, check your spam folder.
+              The link will expire in 1 hour. If you don&apos;t see the email, check your
+              spam folder.
             </p>
             <div className="space-y-3">
               <Link
@@ -91,13 +93,17 @@ export default function ForgotPasswordPage() {
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Forgot Password?</h1>
           <p className="text-gray-600">
-            Enter your email address and we&apos;ll send you a link to reset your password.
+            Enter your email address and we&apos;ll send you a link to reset your
+            password.
           </p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+            <label
+              htmlFor="email"
+              className="block text-sm font-medium text-gray-700 mb-2"
+            >
               Email Address
             </label>
             <input
@@ -126,9 +132,10 @@ export default function ForgotPasswordPage() {
           </Link>
         </div>
 
-        <div className="mt-8 p-4 bg-blue-50 rounded-lg border border-blue-200">
-          <p className="text-sm text-blue-800">
-            <strong>Note:</strong> Email functionality is not yet active. Password reset tokens are being generated and logged to the console for testing purposes.
+        <div className="mt-8 p-4 bg-green-50 rounded-lg border border-green-200">
+          <p className="text-sm text-green-800">
+            <strong>Note:</strong> Email functionality is active. Password reset emails
+            are sent to the address you provide — check your inbox and spam folder.
           </p>
         </div>
       </div>
