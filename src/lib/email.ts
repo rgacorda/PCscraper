@@ -48,7 +48,7 @@ export async function sendVerificationEmail(email: string, token: string) {
   }/api/auth/verify?token=${token}`;
 
   const mailOptions = {
-    from: `PC Builder Support <${process.env.EMAIL_FROM}>`,
+    from: `PC Builder Support <${process.env.GMAIL_OAUTH_USER}>`,
     to: email,
     subject: 'Verify your email address',
     html: `
@@ -146,7 +146,7 @@ export async function sendPasswordResetEmail(
   resetUrl: string
 ) {
   const mailOptions = {
-    from: `PC Builder Support <${process.env.EMAIL_FROM}>`,
+    from: `PC Builder Support <${process.env.GMAIL_OAUTH_USER}>`,
     to: email,
     subject: 'Reset your password',
     html: `
