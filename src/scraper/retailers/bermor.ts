@@ -6,43 +6,33 @@ import { fetchWithRetry } from '@/lib/utils';
 const CATEGORY_URLS = {
   CPU: [
     'https://bermorzone.com.ph/product-category/processors/intel-processor/',
-    'https://bermorzone.com.ph/product-category/processors/amd-processors/'
+    'https://bermorzone.com.ph/product-category/processors/amd-processors/',
   ],
   MOTHERBOARD: [
     'https://bermorzone.com.ph/product-category/motherboard/intel-motherboards/',
-    'https://bermorzone.com.ph/product-category/motherboard/amd-motherboards/'
+    'https://bermorzone.com.ph/product-category/motherboard/amd-motherboards/',
   ],
-  RAM: [
-    'https://bermorzone.com.ph/product-category/memory-modules/desktop-memory/'
-  ],
-  HDD: [
-    'https://bermorzone.com.ph/product-category/storage-devices/hard-drives/'
-  ],
-  SSD: [
-    'https://bermorzone.com.ph/product-category/storage-devices/solid-state-drives/'
-  ],
+  RAM: ['https://bermorzone.com.ph/product-category/memory-modules/desktop-memory/'],
+  HDD: ['https://bermorzone.com.ph/product-category/storage-devices/hard-drives/'],
+  SSD: ['https://bermorzone.com.ph/product-category/storage-devices/solid-state-drives/'],
   GPU: [
     'https://bermorzone.com.ph/product-category/video-cards/amd-video-cards/',
-    'https://bermorzone.com.ph/product-category/video-cards/nvidia-video-cards/'
+    'https://bermorzone.com.ph/product-category/video-cards/nvidia-video-cards/',
   ],
-  CASE: [
-    'https://bermorzone.com.ph/product-category/chassis/'
-  ],
-  MONITOR: [
-    'https://bermorzone.com.ph/product-category/monitors/'
-  ],
-  PSU: [
-    'https://bermorzone.com.ph/product-category/power-sources/power-supply-unit/'
-  ],
+  CASE: ['https://bermorzone.com.ph/product-category/chassis/'],
+  MONITOR: ['https://bermorzone.com.ph/product-category/monitors/'],
+  PSU: ['https://bermorzone.com.ph/product-category/power-sources/power-supply-unit/'],
   CPU_COOLER_AIR: [
-    'https://bermorzone.com.ph/product-category/cooling-systems/aircooling-system/'
+    'https://bermorzone.com.ph/product-category/cooling-systems/aircooling-system/',
   ],
   CPU_COOLER_AIO: [
-    'https://bermorzone.com.ph/product-category/cooling-systems/aio-liquid-cooling-system/'
+    'https://bermorzone.com.ph/product-category/cooling-systems/aio-liquid-cooling-system/',
   ],
-  CASE_FAN: [
-    'https://bermorzone.com.ph/product-category/cooling-systems/fanshubs/'
-  ]
+  CASE_FAN: ['https://bermorzone.com.ph/product-category/cooling-systems/fanshubs/'],
+  ACCESSORY: [
+    // Scrape accessories, including keyboards and mice from this category
+    'https://bermorzone.com.ph/product-category/computer-accessories/',
+  ],
 };
 
 export async function scrapeBermor(maxPages: number = 5): Promise<ScrapedProduct[]> {
@@ -52,7 +42,11 @@ export async function scrapeBermor(maxPages: number = 5): Promise<ScrapedProduct
   const isUnlimited = maxPages <= 0;
   const effectiveMaxPages = isUnlimited ? Infinity : maxPages;
 
-  console.log(`🛒 Starting Bermor category-based scraper (${isUnlimited ? 'unlimited' : `max ${maxPages}`} pages per category)...`);
+  console.log(
+    `🛒 Starting Bermor category-based scraper (${
+      isUnlimited ? 'unlimited' : `max ${maxPages}`
+    } pages per category)...`
+  );
 
   try {
     // Scrape each category
@@ -61,17 +55,20 @@ export async function scrapeBermor(maxPages: number = 5): Promise<ScrapedProduct
 
       for (const categoryUrl of urls) {
         console.log(`   URL: ${categoryUrl}`);
-        const categoryProducts = await scrapeCategoryUrl(categoryUrl, categoryName, effectiveMaxPages);
+        const categoryProducts = await scrapeCategoryUrl(
+          categoryUrl,
+          categoryName,
+          effectiveMaxPages
+        );
         products.push(...categoryProducts);
 
         // Add delay between categories to avoid overwhelming the server
-        await new Promise(resolve => setTimeout(resolve, 2000));
+        await new Promise((resolve) => setTimeout(resolve, 2000));
       }
     }
 
     console.log(`\n✅ Scraping complete!`);
     console.log(`   Total products found: ${products.length}`);
-
   } catch (err) {
     console.error('❌ Fatal error in Bermor scraper:', err);
   }
@@ -90,7 +87,8 @@ async function scrapeCategoryUrl(
   let productsWithoutImages = 0;
 
   while (hasNextPage && currentPage <= maxPages) {
-    const pageUrl = currentPage === 1 ? categoryUrl : `${categoryUrl}page/${currentPage}/`;
+    const pageUrl =
+      currentPage === 1 ? categoryUrl : `${categoryUrl}page/${currentPage}/`;
 
     console.log(`   📄 Page ${currentPage}: ${pageUrl}`);
 
@@ -122,8 +120,9 @@ async function scrapeCategoryUrl(
           const price = parsePrice(priceText);
 
           // Extract the actual product URL
-          const productLink = $el.find('a.woocommerce-LoopProduct-link').first().attr('href') ||
-                             $el.find('a').first().attr('href');
+          const productLink =
+            $el.find('a.woocommerce-LoopProduct-link').first().attr('href') ||
+            $el.find('a').first().attr('href');
           const url = productLink || '';
 
           // Extract image - try multiple attributes for lazy-loaded images
@@ -137,11 +136,10 @@ async function scrapeCategoryUrl(
           ];
 
           // Find first non-empty URL that isn't an SVG placeholder
-          const imageUrl = possibleUrls.find(url =>
-            url &&
-            url.trim() !== '' &&
-            !url.includes('data:image/svg')
-          ) || '';
+          const imageUrl =
+            possibleUrls.find(
+              (url) => url && url.trim() !== '' && !url.includes('data:image/svg')
+            ) || '';
 
           // Extract rating from star rating element
           // The rating is in a nested structure: <div class="star-rating"><span style="width:XX%"><strong class="rating">X.X</strong>...</span></div>
@@ -178,19 +176,39 @@ async function scrapeCategoryUrl(
               productsWithoutImages++;
             }
 
+            // If scraping the ACCESSORY category, try to refine to PERIPHERAL for keyboards/mice
+            let finalCategory = categoryHint;
+            if (categoryHint === 'ACCESSORY') {
+              const lname = name.toLowerCase();
+              if (
+                lname.includes('keyboard') ||
+                lname.includes('keypad') ||
+                lname.includes('mechanical keyboard')
+              ) {
+                finalCategory = 'PERIPHERAL';
+              } else if (lname.includes('mouse') || lname.includes('mice')) {
+                finalCategory = 'PERIPHERAL';
+              } else {
+                finalCategory = 'ACCESSORY';
+              }
+            }
+
             products.push({
               name,
               price,
               url,
               imageUrl,
               inStock,
-              category: categoryHint,
+              category: finalCategory,
               rating,
             });
             pageProductCount++;
           }
         } catch (err) {
-          console.error('      Error parsing product:', err instanceof Error ? err.message : err);
+          console.error(
+            '      Error parsing product:',
+            err instanceof Error ? err.message : err
+          );
         }
       });
 
@@ -205,13 +223,15 @@ async function scrapeCategoryUrl(
         currentPage++;
 
         // Add delay to avoid overwhelming the server
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        await new Promise((resolve) => setTimeout(resolve, 1000));
       } else {
         console.log(`      ✓ Reached last page`);
       }
-
     } catch (err) {
-      console.error(`      ✗ Error scraping page ${currentPage}:`, err instanceof Error ? err.message : err);
+      console.error(
+        `      ✗ Error scraping page ${currentPage}:`,
+        err instanceof Error ? err.message : err
+      );
       hasNextPage = false;
     }
   }
