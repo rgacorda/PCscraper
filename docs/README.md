@@ -1,6 +1,6 @@
 # 📚 Documentation Structure
 
-**Last Organized**: October 18, 2025
+**Last Updated**: October 18, 2025
 
 ## Root Level Documentation
 
@@ -18,20 +18,9 @@
 
 ## `/docs` Directory - Detailed Guides
 
-### `PAGINATION_RESUME.md` - Pagination Feature Reference ✅ NEW
+### Core Documentation
 
-Complete guide for the new pagination resume and auto-cleanup feature:
-
-- How it works with examples
-- Database schema changes
-- Configuration options
-- Monitoring queries
-- Troubleshooting guide
-- Before/after comparison
-
-**→ Read this for understanding the pagination feature**
-
-### `QUICKSTART.md` - Setup Instructions
+#### `QUICKSTART.md` - Setup Instructions
 
 Fast setup guide for getting started:
 
@@ -42,30 +31,7 @@ Fast setup guide for getting started:
 
 **→ Use this to quickly set up the project**
 
-### `SCRAPER_SETUP.md` - Scraper Configuration
-
-Original scraper documentation:
-
-- Scraper overview
-- Supported retailers
-- Configuration options
-- Environment variables
-- Manual scraping
-
-**→ Reference for scraper-specific setup**
-
-### `DEPLOYMENT.md` - Deployment Guide
-
-How to deploy the application:
-
-- Vercel deployment
-- Docker deployment
-- Railway deployment
-- Environment setup for production
-
-**→ Use this for deploying to production**
-
-### `PROJECT_STRUCTURE.md` - Codebase Organization
+#### `PROJECT_STRUCTURE.md` - Codebase Organization
 
 Overview of the project structure:
 
@@ -75,6 +41,85 @@ Overview of the project structure:
 - API routes
 
 **→ Reference for understanding the codebase**
+
+### Scraping & Automation
+
+#### `SCRAPER_SETUP.md` - Scraper Configuration
+
+Complete scraper documentation:
+
+- Scraper overview
+- Supported retailers
+- Configuration options
+- Environment variables
+- Manual scraping commands
+
+**→ Reference for scraper-specific setup**
+
+#### `CRON_SETUP.md` - Automated Scraping with Cron
+
+Complete guide for automated scraping using cron:
+
+- Vercel Cron setup (production with Pro plan)
+- Local scheduler setup (development)
+- GitHub Actions alternative
+- Security and authentication
+- Monitoring and troubleshooting
+- Configuration options
+
+**→ Read this for setting up automatic scraping every 3 hours**
+
+#### `CRON_CONFIGURATION_SUMMARY.md` - Quick Cron Reference
+
+Quick reference for cron configuration:
+
+- Configuration options summary
+- Test commands
+- Environment variable reference
+
+**→ Quick lookup for cron settings**
+
+### Features
+
+#### `PAGINATION_RESUME.md` - Pagination Feature Reference
+
+Complete guide for the pagination resume and auto-cleanup feature:
+
+- How it works with examples
+- Database schema changes
+- Configuration options
+- Monitoring queries
+- Troubleshooting guide
+- Before/after comparison
+
+**→ Read this for understanding the pagination feature**
+
+### Deployment
+
+#### `VERCEL_FREE_DEPLOYMENT.md` - Free Tier Deployment ✅ NEW
+
+Deploy to Vercel free tier without cron/scheduler:
+
+- Free PostgreSQL database options
+- Manual scraping alternatives
+- GitHub Actions setup
+- Limitations and workarounds
+- Cost comparison with other platforms
+
+**→ Use this for budget-friendly deployment**
+
+#### `DEPLOYMENT.md` - Full Production Deployment
+
+Complete deployment guide for production:
+
+- Vercel deployment (with Pro features)
+- Docker deployment
+- Railway deployment
+- VPS deployment
+- Environment setup for production
+- Database migration strategies
+
+**→ Use this for full production deployment**
 
 ---
 
@@ -96,42 +141,59 @@ Overview of the project structure:
 
 ## Reading Paths
 
-### For New Users
+### For New Users (Getting Started)
 
-1. `README.md` (5 min)
-2. `docs/QUICKSTART.md` (10 min)
-3. `docs/PROJECT_STRUCTURE.md` (5 min)
+1. `README.md` (5 min) - Project overview
+2. `docs/QUICKSTART.md` (10 min) - Setup instructions
+3. `docs/VERCEL_FREE_DEPLOYMENT.md` (15 min) - Deploy for free
 
-### For Developers
+**Total: ~30 minutes to get started**
 
-1. `README.md` (5 min)
-2. `docs/PROJECT_STRUCTURE.md` (5 min)
-3. `docs/SCRAPER_SETUP.md` (10 min)
-4. `docs/PAGINATION_RESUME.md` (15 min)
+### For Developers (Contributing)
 
-### For DevOps/Deployment
+1. `README.md` (5 min) - Overview
+2. `docs/PROJECT_STRUCTURE.md` (5 min) - Code organization
+3. `docs/SCRAPER_SETUP.md` (10 min) - Scraper details
+4. `docs/PAGINATION_RESUME.md` (15 min) - Feature deep-dive
 
-1. `README.md` (5 min)
-2. `docs/DEPLOYMENT.md` (15 min)
-3. `docs/PAGINATION_RESUME.md` (10 min - monitoring section)
+**Total: ~35 minutes to understand codebase**
 
-### For Understanding Pagination Feature
+### For DevOps/Deployment (Production)
 
-1. `README.md` - Overview section (2 min)
-2. `docs/PAGINATION_RESUME.md` - Complete guide (15 min)
+1. `README.md` (5 min) - Overview
+2. `docs/DEPLOYMENT.md` (20 min) - Full deployment options
+3. `docs/CRON_SETUP.md` (15 min) - Automated scraping
+4. `docs/PAGINATION_RESUME.md` (10 min - monitoring section)
+
+**Total: ~50 minutes for production setup**
+
+### For Budget-Conscious Deployment
+
+1. `README.md` (5 min) - Overview
+2. `docs/VERCEL_FREE_DEPLOYMENT.md` (15 min) - Free tier setup
+3. `docs/SCRAPER_SETUP.md` (10 min) - Manual scraping
+
+**Total: ~30 minutes for free deployment**
 
 ---
 
 ## Quick Reference
 
-| Need                  | Document                    |
-| --------------------- | --------------------------- |
-| Project overview      | `README.md`                 |
-| Setup & installation  | `docs/QUICKSTART.md`        |
-| Project structure     | `docs/PROJECT_STRUCTURE.md` |
-| Scraper configuration | `docs/SCRAPER_SETUP.md`     |
-| Pagination feature    | `docs/PAGINATION_RESUME.md` |
-| Deployment            | `docs/DEPLOYMENT.md`        |
+| Need                       | Document                             |
+| -------------------------- | ------------------------------------ |
+| **Getting Started**        |                                      |
+| Project overview           | `README.md`                          |
+| Setup & installation       | `docs/QUICKSTART.md`                 |
+| Project structure          | `docs/PROJECT_STRUCTURE.md`          |
+| **Scraping**               |                                      |
+| Scraper configuration      | `docs/SCRAPER_SETUP.md`              |
+| Automated scraping (cron)  | `docs/CRON_SETUP.md`                 |
+| Cron quick reference       | `docs/CRON_CONFIGURATION_SUMMARY.md` |
+| **Features**               |                                      |
+| Pagination feature         | `docs/PAGINATION_RESUME.md`          |
+| **Deployment**             |                                      |
+| Free deployment (no cron)  | `docs/VERCEL_FREE_DEPLOYMENT.md`     |
+| Full production deployment | `docs/DEPLOYMENT.md`                 |
 
 ---
 
@@ -139,24 +201,45 @@ Overview of the project structure:
 
 ```
 project-root/
-├── README.md                    # Main guide
+├── README.md                              # Main project guide
 ├── docs/
-│   ├── PAGINATION_RESUME.md    # Feature guide (new)
-│   ├── QUICKSTART.md           # Setup guide
-│   ├── SCRAPER_SETUP.md        # Scraper config
-│   ├── DEPLOYMENT.md           # Deployment guide
-│   └── PROJECT_STRUCTURE.md    # Code structure
+│   ├── README.md                          # This file - documentation index
+│   │
+│   ├── QUICKSTART.md                      # Quick setup guide
+│   ├── PROJECT_STRUCTURE.md               # Code organization
+│   │
+│   ├── SCRAPER_SETUP.md                   # Scraper configuration
+│   ├── CRON_SETUP.md                      # Automated scraping (cron)
+│   ├── CRON_CONFIGURATION_SUMMARY.md      # Quick cron reference
+│   │
+│   ├── PAGINATION_RESUME.md               # Pagination feature guide
+│   │
+│   ├── VERCEL_FREE_DEPLOYMENT.md          # Free tier deployment
+│   └── DEPLOYMENT.md                      # Full production deployment
 └── ... (code files)
 ```
 
 ---
 
-## Status
+## Documentation Status
 
-✅ Documentation organized and cleaned up  
-✅ Removed 9 unnecessary duplicate files  
-✅ Consolidated content into main references  
-✅ Updated README with new feature info  
-✅ Clear reading paths for different roles
+✅ **Documentation organized and up-to-date!**
+
+### Recent Updates (October 18, 2025):
+
+- ✅ Added `VERCEL_FREE_DEPLOYMENT.md` - Deploy without paid features
+- ✅ Added `CRON_SETUP.md` - Automated scraping guide
+- ✅ Added `CRON_CONFIGURATION_SUMMARY.md` - Quick reference
+- ✅ Moved summary docs to `/docs` folder
+- ✅ Updated documentation index
+- ✅ Organized by category (Core, Scraping, Features, Deployment)
+
+### Total Documents: 9 guides
+
+- 2 Core guides (Quickstart, Project Structure)
+- 3 Scraping guides (Setup, Cron, Summary)
+- 1 Feature guide (Pagination)
+- 2 Deployment guides (Free, Production)
+- 1 Documentation index (this file)
 
 All documentation is production-ready! 🚀

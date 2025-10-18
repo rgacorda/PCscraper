@@ -134,12 +134,17 @@ For detailed setup instructions, see [📘 Quick Start Guide](docs/QUICKSTART.md
 
 ## 📚 Documentation
 
-| Guide                                             | Description                                       |
-| ------------------------------------------------- | ------------------------------------------------- |
-| [🚀 Quick Start](docs/QUICKSTART.md)              | Get started in minutes with step-by-step setup    |
-| [🕸️ Scraper Setup](docs/SCRAPER_SETUP.md)         | Complete scraping configuration & troubleshooting |
-| [🏗️ Project Structure](docs/PROJECT_STRUCTURE.md) | Architecture and file organization reference      |
-| [🚀 Deployment](docs/DEPLOYMENT.md)               | Deploy to Vercel, Railway, or Docker              |
+| Guide                                               | Description                                       |
+| --------------------------------------------------- | ------------------------------------------------- |
+| [🚀 Quick Start](docs/QUICKSTART.md)                | Get started in minutes with step-by-step setup    |
+| [🕸️ Scraper Setup](docs/SCRAPER_SETUP.md)           | Complete scraping configuration & troubleshooting |
+| [⏰ Cron Setup](docs/CRON_SETUP.md)                 | Automated scraping every 3 hours (Vercel Pro)     |
+| [🏗️ Project Structure](docs/PROJECT_STRUCTURE.md)   | Architecture and file organization reference      |
+| [� Free Deployment](docs/VERCEL_FREE_DEPLOYMENT.md) | Deploy to Vercel free tier (no cron/scheduler)    |
+| [�🚀 Full Deployment](docs/DEPLOYMENT.md)           | Production deployment to Vercel, Railway, Docker  |
+| [📄 Pagination Feature](docs/PAGINATION_RESUME.md)  | Resume scraping & auto-cleanup documentation      |
+
+**📖 For complete documentation index:** See [docs/README.md](docs/README.md)
 
 ## 🔧 Common Commands
 
