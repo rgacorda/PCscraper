@@ -34,17 +34,19 @@ interface ComponentSelectorProps {
   category: string;
   onSelect: (product: Product, listing: any) => void;
   onClose: () => void;
+  initialSearch?: string;
 }
 
 export default function ComponentSelector({
   category,
   onSelect,
   onClose,
+  initialSearch = '',
 }: ComponentSelectorProps) {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [searching, setSearching] = useState(false);
-  const [search, setSearch] = useState('');
+  const [search, setSearch] = useState(initialSearch);
   const [pagination, setPagination] = useState<PaginationInfo>({
     page: 1,
     limit: 20,
@@ -56,42 +58,47 @@ export default function ComponentSelector({
   const searchTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   // Memoized fetch function
-  const fetchProducts = useCallback(async (page: number, searchQuery: string) => {
-    // Don't show full loading spinner if we're just searching/paginating
-    if (page === 1 && searchQuery !== search) {
-      setSearching(true);
-    } else {
-      setLoading(true);
-    }
+  const fetchProducts = useCallback(
+    async (page: number, searchQuery: string) => {
+      // Don't show full loading spinner if we're just searching/paginating
+      if (page === 1 && searchQuery !== search) {
+        setSearching(true);
+      } else {
+        setLoading(true);
+      }
 
-    try {
-      const params = new URLSearchParams();
-      params.append('category', category);
-      if (searchQuery) params.append('search', searchQuery);
-      params.append('page', page.toString());
-      params.append('limit', '20');
+      try {
+        const params = new URLSearchParams();
+        params.append('category', category);
+        if (searchQuery) params.append('search', searchQuery);
+        params.append('page', page.toString());
+        params.append('limit', '20');
 
-      const response = await fetch(`/api/products?${params}`);
-      const data = await response.json();
-      setProducts(data.products || []);
-      setPagination(data.pagination || {
-        page: page,
-        limit: 20,
-        total: 0,
-        totalPages: 0,
-      });
-    } catch (error) {
-      console.error('Error fetching products:', error);
-    } finally {
-      setLoading(false);
-      setSearching(false);
-    }
-  }, [category, search]);
+        const response = await fetch(`/api/products?${params}`);
+        const data = await response.json();
+        setProducts(data.products || []);
+        setPagination(
+          data.pagination || {
+            page: page,
+            limit: 20,
+            total: 0,
+            totalPages: 0,
+          }
+        );
+      } catch (error) {
+        console.error('Error fetching products:', error);
+      } finally {
+        setLoading(false);
+        setSearching(false);
+      }
+    },
+    [category, search]
+  );
 
   // Initial load when category changes
   useEffect(() => {
-    setSearch('');
-    fetchProducts(1, '');
+    setSearch(initialSearch);
+    fetchProducts(1, initialSearch);
   }, [category]);
 
   // Debounced search effect
@@ -116,9 +123,7 @@ export default function ComponentSelector({
 
   const handleSelect = (product: Product) => {
     // Get the cheapest in-stock listing
-    const inStockListings = product.listings.filter(
-      (l) => l.stockStatus === 'IN_STOCK'
-    );
+    const inStockListings = product.listings.filter((l) => l.stockStatus === 'IN_STOCK');
     const listing =
       inStockListings.length > 0
         ? inStockListings.sort((a, b) => a.price - b.price)[0]
@@ -145,7 +150,11 @@ export default function ComponentSelector({
     pages.push(1);
 
     // Show pages around current page
-    for (let i = Math.max(2, currentPage - 1); i <= Math.min(totalPages - 1, currentPage + 1); i++) {
+    for (
+      let i = Math.max(2, currentPage - 1);
+      i <= Math.min(totalPages - 1, currentPage + 1);
+      i++
+    ) {
       if (!pages.includes(i)) {
         if (pages[pages.length - 1] < i - 1) {
           pages.push(-1); // Ellipsis
@@ -316,9 +325,10 @@ export default function ComponentSelector({
               )}
 
               {products.map((product) => {
-                const cheapestListing = product.listings
-                  .filter((l) => l.stockStatus === 'IN_STOCK')
-                  .sort((a, b) => a.price - b.price)[0] || product.listings[0];
+                const cheapestListing =
+                  product.listings
+                    .filter((l) => l.stockStatus === 'IN_STOCK')
+                    .sort((a, b) => a.price - b.price)[0] || product.listings[0];
 
                 return (
                   <button
@@ -369,7 +379,12 @@ export default function ComponentSelector({
                         {/* Rating */}
                         {product.rating && (
                           <div className="mt-2">
-                            <StarRating rating={product.rating} totalRatings={0} size="sm" showCount={false} />
+                            <StarRating
+                              rating={product.rating}
+                              totalRatings={0}
+                              size="sm"
+                              showCount={false}
+                            />
                           </div>
                         )}
 

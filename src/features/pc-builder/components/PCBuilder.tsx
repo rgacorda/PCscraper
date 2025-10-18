@@ -5,6 +5,7 @@ import { useSearchParams } from 'next/navigation';
 import { formatPrice } from '@/lib/utils';
 import ComponentSelector from './ComponentSelector';
 import SaveOptionsModal from './SaveOptionsModal';
+import QuickSearch from './QuickSearch';
 import StarRating from '@/components/StarRating';
 import toast from 'react-hot-toast';
 
@@ -33,6 +34,7 @@ export default function PCBuilder() {
   const [buildItems, setBuildItems] = useState<BuildItem[]>([]);
   const [buildName, setBuildName] = useState('My PC Build');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [selectedCategorySearch, setSelectedCategorySearch] = useState<string>('');
   const [saving, setSaving] = useState(false);
   const [saveMessage, setSaveMessage] = useState<string | null>(null);
   const [showSaveOptions, setShowSaveOptions] = useState(false);
@@ -53,6 +55,7 @@ export default function PCBuilder() {
     { key: 'MONITOR', name: 'Monitor', allowMultiple: true },
     { key: 'PERIPHERAL', name: 'Peripherals', allowMultiple: true },
     { key: 'ACCESSORY', name: 'Accessories', allowMultiple: true },
+    { key: 'OTHER', name: 'Other', allowMultiple: true },
   ];
 
   // Load existing build if buildId is present
@@ -342,6 +345,26 @@ export default function PCBuilder() {
         </div>
       )}
 
+      {/* Quick Search Bar */}
+      <div className="card">
+        <div className="mb-2">
+          <label className="text-sm font-semibold text-gray-700 mb-2 block">
+            Quick Search & Add Components
+          </label>
+          <QuickSearch
+            onSelect={addItem}
+            onOpenModal={(category, search) => {
+              setSelectedCategory(category);
+              setSelectedCategorySearch(search);
+            }}
+          />
+        </div>
+        <p className="text-xs text-gray-500 mt-2">
+          Search for parts and add them instantly. If more than 10 results match, you'll
+          see a modal to browse all options.
+        </p>
+      </div>
+
       {/* Header */}
       <div className="card">
         <div className="flex items-center justify-between flex-wrap gap-4">
@@ -570,7 +593,11 @@ export default function PCBuilder() {
         <ComponentSelector
           category={selectedCategory}
           onSelect={addItem}
-          onClose={() => setSelectedCategory(null)}
+          onClose={() => {
+            setSelectedCategory(null);
+            setSelectedCategorySearch('');
+          }}
+          initialSearch={selectedCategorySearch}
         />
       )}
 

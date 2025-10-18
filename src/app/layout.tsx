@@ -60,13 +60,6 @@ export default function RootLayout({
                   >
                     Terms & Conditions
                   </a>
-                  <span className="text-gray-400">•</span>
-                  <a
-                    href="/privacy"
-                    className="text-blue-600 hover:text-blue-800 hover:underline transition-colors"
-                  >
-                    Privacy Policy
-                  </a>
                 </div>
               </div>
             </div>
