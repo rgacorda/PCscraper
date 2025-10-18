@@ -47,8 +47,27 @@ export default function RootLayout({
           <footer className="bg-white border-t border-blue-100 mt-16">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
               <div className="text-center text-gray-600 text-sm">
-                <p className="mb-2">© 2025 PH PC Parts Aggregator. Compare prices from top retailers.</p>
-                <p className="text-xs text-gray-500">Datablitz • PCWorth • Bermor Techzone</p>
+                <p className="mb-2">
+                  © 2025 PH PC Parts Aggregator. Compare prices from top retailers.
+                </p>
+                <p className="text-xs text-gray-500 mb-3">
+                  Datablitz • PCWorth • Bermor Techzone
+                </p>
+                <div className="flex justify-center gap-4 text-xs">
+                  <a
+                    href="/terms"
+                    className="text-blue-600 hover:text-blue-800 hover:underline transition-colors"
+                  >
+                    Terms & Conditions
+                  </a>
+                  <span className="text-gray-400">•</span>
+                  <a
+                    href="/privacy"
+                    className="text-blue-600 hover:text-blue-800 hover:underline transition-colors"
+                  >
+                    Privacy Policy
+                  </a>
+                </div>
               </div>
             </div>
           </footer>

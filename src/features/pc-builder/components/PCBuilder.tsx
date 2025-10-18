@@ -51,7 +51,7 @@ export default function PCBuilder() {
     { key: 'PSU', name: 'Power Supply' },
     { key: 'CASE_FAN', name: 'Case Fan', allowMultiple: true },
     { key: 'MONITOR', name: 'Monitor', allowMultiple: true },
-    { key: 'PERIPHERAL', name: 'Keyboard / Mouse', allowMultiple: true },
+    { key: 'PERIPHERAL', name: 'Peripherals', allowMultiple: true },
     { key: 'ACCESSORY', name: 'Accessories', allowMultiple: true },
   ];
 
