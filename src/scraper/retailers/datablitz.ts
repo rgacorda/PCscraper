@@ -1,5 +1,3 @@
-import * as fs from 'fs/promises';
-import * as path from 'path';
 import { ScrapedProduct } from '../normalizer';
 import { fetchWithRetry } from '@/lib/utils';
 
@@ -136,11 +134,6 @@ export async function scrapeDatablitz(): Promise<ScrapedProduct[]> {
       hasMore = false;
     }
   }
-
-  // Export scraped products to file in root
-  const outputPath = path.join(process.cwd(), 'datablitz-products.json');
-  await fs.writeFile(outputPath, JSON.stringify(products, null, 2));
-  console.log(`Scraped ${products.length} products exported to ${outputPath}`);
 
   return products;
 }
