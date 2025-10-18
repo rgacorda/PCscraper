@@ -4,6 +4,7 @@ import { fetchWithRetry } from '@/lib/utils';
 // Helper function to build API URLs
 const buildUrl = (slug: string, category: string, branchId: number) => {
   const base = 'https://apiv4.pcworth.com/api/ecomm/products/available/get';
+  const itemsPerPage = process.env.PCWORTH_ITEMS_PER_PAGE || '48';
   const params = [
     `slug=${slug}`,
     `page={PAGE}`,
@@ -11,7 +12,7 @@ const buildUrl = (slug: string, category: string, branchId: number) => {
     `sort_direction=asc`,
     `keyword=`,
     `available_only=0`,
-    `limit=48`,
+    `limit=${itemsPerPage}`,
     `branch_id=${branchId}`,
   ]
     .filter(Boolean)
@@ -22,8 +23,14 @@ const buildUrl = (slug: string, category: string, branchId: number) => {
 // Helper function to scrape a single branch
 async function scrapeBranch(branchId: number): Promise<any[]> {
   const allItems: any[] = [];
-  const LIMIT = 48;
-  const MAX_PAGES = 50;
+
+  // Get configuration from environment variables
+  const LIMIT = process.env.PCWORTH_ITEMS_PER_PAGE
+    ? parseInt(process.env.PCWORTH_ITEMS_PER_PAGE, 10)
+    : 48;
+  const MAX_PAGES = process.env.PCWORTH_MAX_PAGES
+    ? parseInt(process.env.PCWORTH_MAX_PAGES, 10)
+    : 50;
 
   // Categories to scrape with their slugs and category parameters
   const CATEGORIES = [
