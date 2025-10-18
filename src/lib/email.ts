@@ -32,7 +32,7 @@ const transporter: any = nodemailer.createTransport({
     refreshToken: process.env.GOOGLE_REFRESH_TOKEN,
     accessToken: getAccessToken, // function that returns token
   },
-});
+} as unknown as any);
 
 transporter.verify((err: Error | null) => {
   if (err) {

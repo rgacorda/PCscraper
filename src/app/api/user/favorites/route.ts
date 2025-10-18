@@ -4,15 +4,12 @@ import { authOptions } from '@/lib/auth';
 import prisma from '@/lib/prisma';
 
 // GET - Get all favorited builds for current user
-export async function GET(request: NextRequest) {
+export async function GET(_request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
 
     if (!session || !session.user) {
-      return NextResponse.json(
-        { error: 'Authentication required' },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
     }
 
     const favorites = await prisma.buildFavorite.findMany({
@@ -98,9 +95,6 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ favorites: favoritesWithRatings });
   } catch (error) {
     console.error('Error fetching favorites:', error);
-    return NextResponse.json(
-      { error: 'Failed to fetch favorites' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to fetch favorites' }, { status: 500 });
   }
 }

@@ -4,15 +4,12 @@ import { authOptions } from '@/lib/auth';
 import prisma from '@/lib/prisma';
 
 // GET - Get current user profile
-export async function GET(request: NextRequest) {
+export async function GET(_request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
 
     if (!session || !session.user) {
-      return NextResponse.json(
-        { error: 'Authentication required' },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
     }
 
     const user = await prisma.user.findUnique({
@@ -42,41 +39,29 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ user });
   } catch (error) {
     console.error('Error fetching user profile:', error);
-    return NextResponse.json(
-      { error: 'Failed to fetch user profile' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to fetch user profile' }, { status: 500 });
   }
 }
 
 // PUT - Update user profile
-export async function PUT(request: NextRequest) {
+export async function PUT(_request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
 
     if (!session || !session.user) {
-      return NextResponse.json(
-        { error: 'Authentication required' },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
     }
 
-    const body = await request.json();
+    const body = await _request.json();
     const { name, email, image } = body;
 
     // Validate input
     if (!name || name.trim().length === 0) {
-      return NextResponse.json(
-        { error: 'Name is required' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Name is required' }, { status: 400 });
     }
 
     if (!email || !email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) {
-      return NextResponse.json(
-        { error: 'Valid email is required' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Valid email is required' }, { status: 400 });
     }
 
     // Check if email is already taken by another user
@@ -86,10 +71,7 @@ export async function PUT(request: NextRequest) {
       });
 
       if (existingUser && existingUser.id !== session.user.id) {
-        return NextResponse.json(
-          { error: 'Email is already taken' },
-          { status: 400 }
-        );
+        return NextResponse.json({ error: 'Email is already taken' }, { status: 400 });
       }
     }
 
@@ -114,27 +96,21 @@ export async function PUT(request: NextRequest) {
 
     return NextResponse.json({
       message: 'Profile updated successfully',
-      user: updatedUser
+      user: updatedUser,
     });
   } catch (error) {
     console.error('Error updating user profile:', error);
-    return NextResponse.json(
-      { error: 'Failed to update user profile' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to update user profile' }, { status: 500 });
   }
 }
 
 // DELETE - Delete user account (soft delete - keeps public builds)
-export async function DELETE(request: NextRequest) {
+export async function DELETE(_request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
 
     if (!session || !session.user) {
-      return NextResponse.json(
-        { error: 'Authentication required' },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
     }
 
     // Set userId to null for public builds (keeps them but orphans them)
@@ -162,13 +138,10 @@ export async function DELETE(request: NextRequest) {
     });
 
     return NextResponse.json({
-      message: 'Account deleted successfully. Your public builds have been preserved.'
+      message: 'Account deleted successfully. Your public builds have been preserved.',
     });
   } catch (error) {
     console.error('Error deleting user account:', error);
-    return NextResponse.json(
-      { error: 'Failed to delete user account' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to delete user account' }, { status: 500 });
   }
 }

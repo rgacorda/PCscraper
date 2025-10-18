@@ -20,10 +20,11 @@ export default function TermsPage() {
                 1. Introduction
               </h2>
               <p className="text-gray-700 mb-4">
-                Welcome to PH PC Parts Aggregator ("we," "our," or "us"). These Terms and
-                Conditions ("Terms") govern your access to and use of our website,
-                services, and PC building tools (collectively, the "Service"). By
-                accessing or using our Service, you agree to be bound by these Terms.
+                Welcome to PH PC Parts Aggregator (&quot;we,&quot; &quot;our,&quot; or
+                &quot;us&quot;). These Terms and Conditions (&quot;Terms&quot;) govern
+                your access to and use of our website, services, and PC building tools
+                (collectively, the &quot;Service&quot;). By accessing or using our
+                Service, you agree to be bound by these Terms.
               </p>
               <p className="text-gray-700">
                 If you do not agree to these Terms, please do not use our Service.
@@ -125,9 +126,9 @@ export default function TermsPage() {
               </h3>
               <p className="text-gray-700 mb-4">
                 You retain ownership of any content you create, including PC builds,
-                comments, and ratings ("User Content"). By submitting User Content, you
-                grant us a worldwide, non-exclusive, royalty-free license to use, display,
-                and distribute your content within the Service.
+                comments, and ratings (&quot;User Content&quot;). By submitting User
+                Content, you grant us a worldwide, non-exclusive, royalty-free license to
+                use, display, and distribute your content within the Service.
               </p>
 
               <h3 className="text-xl font-semibold text-gray-800 mb-3">
@@ -313,8 +314,8 @@ export default function TermsPage() {
               </h2>
               <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-4">
                 <p className="text-gray-700 font-semibold">
-                  THE SERVICE IS PROVIDED "AS IS" AND "AS AVAILABLE" WITHOUT WARRANTIES OF
-                  ANY KIND.
+                  THE SERVICE IS PROVIDED &quot;AS IS&quot; AND &quot;AS AVAILABLE&quot;
+                  WITHOUT WARRANTIES OF ANY KIND.
                 </p>
               </div>
               <p className="text-gray-700 mb-4">
@@ -378,7 +379,7 @@ export default function TermsPage() {
               </p>
               <ul className="list-disc list-inside space-y-2 text-gray-700 ml-4">
                 <li>Posting the updated Terms on this page</li>
-                <li>Updating the "Last Updated" date</li>
+                <li>Updating the &quot;Last Updated&quot; date</li>
                 <li>Sending email notifications for significant changes</li>
               </ul>
               <p className="text-gray-700 mt-4">

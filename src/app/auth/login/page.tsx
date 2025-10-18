@@ -2,12 +2,11 @@
 
 import { useState, useEffect } from 'react';
 import { signIn } from 'next-auth/react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
 export default function LoginPage() {
   const router = useRouter();
-  const searchParams = useSearchParams();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -15,10 +14,13 @@ export default function LoginPage() {
   const [registered, setRegistered] = useState(false);
 
   useEffect(() => {
-    if (searchParams.get('registered') === 'true') {
-      setRegistered(true);
+    // Read search params from window during client render to avoid needing a
+    // Suspense boundary around useSearchParams in prerendering.
+    if (typeof window !== 'undefined') {
+      const sp = new URLSearchParams(window.location.search);
+      if (sp.get('registered') === 'true') setRegistered(true);
     }
-  }, [searchParams]);
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

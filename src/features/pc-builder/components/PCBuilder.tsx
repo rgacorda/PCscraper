@@ -336,9 +336,9 @@ export default function PCBuilder() {
 
               <div className="mt-3 text-sm text-yellow-800 bg-yellow-50 p-3 rounded border border-yellow-100">
                 <strong>Retailer listings note:</strong> Some products shown on retailer
-                sites may not be listed in this website’s product database. Prices,
-                availability, or exact product details may differ — always confirm on the
-                retailer page before buying.
+                sites may not be listed in this website&apos;s product database. Prices,
+                availability, or exact product details may differ \u2014 always confirm on
+                the retailer page before buying.
               </div>
             </div>
           </div>
@@ -360,7 +360,7 @@ export default function PCBuilder() {
           />
         </div>
         <p className="text-xs text-gray-500 mt-2">
-          Search for parts and add them instantly. If more than 10 results match, you'll
+          Search for parts and add them instantly. If more than 10 results match, you will
           see a modal to browse all options.
         </p>
       </div>
