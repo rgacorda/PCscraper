@@ -293,6 +293,55 @@ export default function PCBuilder() {
 
   return (
     <div className="space-y-6">
+      {/* Info Box - moved to top of page */}
+      {buildItems.length === 0 && (
+        <div className="card bg-blue-50 border-blue-200">
+          <div className="flex items-start gap-3">
+            <svg
+              className="w-6 h-6 text-blue-600 flex-shrink-0 mt-0.5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
+            </svg>
+            <div>
+              <h3 className="font-semibold text-blue-900 mb-1">
+                How to use the PC Builder
+              </h3>
+              <ul className="text-sm text-blue-800 space-y-1">
+                <li>
+                  • Click &quot;Choose&quot; or the &quot;+&quot; button next to any
+                  component to select parts
+                </li>
+                <li>• Compare prices from multiple Philippine retailers</li>
+                <li>• Add multiple RAM sticks, storage drives, and fans to your build</li>
+                <li>• Save your build to share or reference later</li>
+              </ul>
+
+              <div className="mt-3 text-sm text-red-700 bg-red-50 p-3 rounded border border-red-100">
+                <strong>Compatibility reminder:</strong> CPU compatibility checks (socket,
+                chipset, TDP, etc.) are not yet implemented. Please verify CPU,
+                motherboard, RAM, and PSU compatibility manually before saving or
+                purchasing.
+              </div>
+
+              <div className="mt-3 text-sm text-yellow-800 bg-yellow-50 p-3 rounded border border-yellow-100">
+                <strong>Retailer listings note:</strong> Some products shown on retailer
+                sites may not be listed in this website’s product database. Prices,
+                availability, or exact product details may differ — always confirm on the
+                retailer page before buying.
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Header */}
       <div className="card">
         <div className="flex items-center justify-between flex-wrap gap-4">
@@ -515,41 +564,6 @@ export default function PCBuilder() {
           </table>
         </div>
       </div>
-
-      {/* Info Box */}
-      {buildItems.length === 0 && (
-        <div className="card bg-blue-50 border-blue-200">
-          <div className="flex items-start gap-3">
-            <svg
-              className="w-6 h-6 text-blue-600 flex-shrink-0 mt-0.5"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-              />
-            </svg>
-            <div>
-              <h3 className="font-semibold text-blue-900 mb-1">
-                How to use the PC Builder
-              </h3>
-              <ul className="text-sm text-blue-800 space-y-1">
-                <li>
-                  • Click &quot;Choose&quot; or the &quot;+&quot; button next to any
-                  component to select parts
-                </li>
-                <li>• Compare prices from multiple Philippine retailers</li>
-                <li>• Add multiple RAM sticks, storage drives, and fans to your build</li>
-                <li>• Save your build to share or reference later</li>
-              </ul>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Component Selector Modal */}
       {selectedCategory && (
