@@ -21,7 +21,11 @@ const buildUrl = (slug: string, category: string, branchId: number) => {
 };
 
 // Helper function to scrape a single branch
-async function scrapeBranch(branchId: number): Promise<any[]> {
+async function scrapeBranch(
+  branchId: number,
+  startPage: number = 1,
+  categoryFilter?: string
+): Promise<any[]> {
   const allItems: any[] = [];
 
   // Get configuration from environment variables
@@ -72,8 +76,13 @@ async function scrapeBranch(branchId: number): Promise<any[]> {
   console.log(`  🏪 Scraping branch ${branchId}...`);
 
   for (const categoryInfo of CATEGORIES) {
+    // Skip if category filter is set and doesn't match
+    if (categoryFilter && categoryInfo.key !== categoryFilter) {
+      continue;
+    }
+
     const template = buildUrl(categoryInfo.slug, categoryInfo.category, branchId);
-    let page = 1;
+    let page = startPage;
 
     while (page <= MAX_PAGES) {
       const apiUrl = template.replace('{PAGE}', String(page));
@@ -139,8 +148,13 @@ async function scrapeBranch(branchId: number): Promise<any[]> {
   return allItems;
 }
 
-export async function scrapePCWorth(): Promise<ScrapedProduct[]> {
-  console.log('🔍 Starting PCWorth scraper for branches 1, 2, and 4...');
+export async function scrapePCWorth(
+  startPage: number = 1,
+  categoryFilter?: string
+): Promise<ScrapedProduct[]> {
+  console.log(
+    `🔍 Starting PCWorth scraper for branches 1, 2, and 4 (starting from page ${startPage})...`
+  );
 
   const BRANCH_IDS = [1, 2, 4];
   const products: ScrapedProduct[] = [];
@@ -161,7 +175,7 @@ export async function scrapePCWorth(): Promise<ScrapedProduct[]> {
 
     // Scrape all branches
     for (const branchId of BRANCH_IDS) {
-      const branchItems = await scrapeBranch(branchId);
+      const branchItems = await scrapeBranch(branchId, startPage, categoryFilter);
 
       // Process items from this branch
       for (const item of branchItems) {

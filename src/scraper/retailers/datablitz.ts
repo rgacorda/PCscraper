@@ -24,7 +24,10 @@ interface ShopifyCollectionResponse {
   products: ShopifyProduct[];
 }
 
-export async function scrapeDatablitz(): Promise<ScrapedProduct[]> {
+export async function scrapeDatablitz(
+  maxPages: number = parseInt(process.env.DATABLITZ_MAX_PAGES || '50', 10),
+  startPage: number = 1
+): Promise<ScrapedProduct[]> {
   const products: ScrapedProduct[] = [];
   const seenUrls = new Set<string>(); // Track duplicates
 
@@ -32,12 +35,23 @@ export async function scrapeDatablitz(): Promise<ScrapedProduct[]> {
   const collectionApiUrl =
     'https://ecommerce.datablitz.com.ph/collections/pc-parts-and-components/products.json';
 
+  // Support unlimited pages when maxPages is 0 or negative
+  const isUnlimited = maxPages <= 0;
+  const effectiveMaxPages = isUnlimited ? Infinity : maxPages;
+
   const pageSize = 250; // Shopify max limit per request
   let hasMore = true;
-  let pageNum = 1;
+  let pageNum = startPage;
   let pagesDuplicated = 0; // Track consecutive pages with all duplicates
 
   while (hasMore) {
+    // Check if we've reached the max pages limit
+    if (pageNum > effectiveMaxPages) {
+      console.log(`Reached max pages limit (${maxPages}). Stopping.`);
+      hasMore = false;
+      break;
+    }
+
     try {
       // Use page parameter instead of since for proper pagination
       const url = `${collectionApiUrl}?limit=${pageSize}&page=${pageNum}`;

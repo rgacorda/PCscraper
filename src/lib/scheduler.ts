@@ -10,10 +10,11 @@ const ENABLED_RETAILERS: Retailer[] = [
 ];
 
 // Scraping Configuration Notes:
-// - BERMOR_MAX_PAGES env variable controls how many pages to scrape (default: 50)
-// - Set to 0 or -1 for unlimited pages (will scrape all 433+ pages)
-// - For scheduled runs: Use 50-100 pages for faster updates (new products appear first)
-// - For manual full scrapes: Set to 0 in .env or pass directly to scrapeBermor(0)
+// - BERMOR_MAX_PAGES env variable controls how many pages to scrape per cycle (default: 5)
+// - Set to 0 or -1 for unlimited pages (will scrape all pages in each cycle)
+// - Scraper resumes from last page every 3 hours until all products are scraped
+// - Old products not scraped in 30 days are automatically deleted
+// - For scheduled runs: Scraper will continuously resume until all pages are complete
 
 // Run scraper for all enabled retailers
 export async function runAllScrapers() {
@@ -32,7 +33,7 @@ export async function runAllScrapers() {
       results.push({
         retailer,
         success: false,
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: error instanceof Error ? error.message : 'Unknown error',
       });
     }
   }
@@ -41,17 +42,18 @@ export async function runAllScrapers() {
   return results;
 }
 
-// Schedule function to run every 6 hours
+// Schedule function to run every 3 hours
 export function setupScheduler() {
-  const SIX_HOURS = 6 * 60 * 60 * 1000; // 6 hours in milliseconds
+  const THREE_HOURS = 3 * 60 * 60 * 1000; // 3 hours in milliseconds
 
-  console.log('⏰ Scheduler initialized - will run every 6 hours');
-  console.log('⏰ First scheduled scrape will run in 6 hours from now');
+  console.log('⏰ Scheduler initialized - will run every 3 hours');
+  console.log('⏰ First scheduled scrape will run in 3 hours from now');
+  console.log(`📋 Enabled retailers: ${ENABLED_RETAILERS.join(', ')}`);
 
-  // Schedule to run every 6 hours
-  // Note: Does NOT run immediately on startup, only runs every 6 hours after startup
+  // Schedule to run every 3 hours
+  // Note: Does NOT run immediately on startup, only runs every 3 hours after startup
   setInterval(() => {
-    console.log('⏰ Triggered scheduled scrape (every 6 hours)');
+    console.log('⏰ Triggered scheduled scrape (every 3 hours)');
     runAllScrapers().catch(console.error);
-  }, SIX_HOURS);
+  }, THREE_HOURS);
 }

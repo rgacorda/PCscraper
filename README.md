@@ -13,26 +13,30 @@ This platform provides a centralized interface for comparing prices, checking st
 
 ## 🚀 Overview
 
-| Layer | Description |
-|--------|--------------|
-| 🧠 **Backend (API + Scraper)** | Handles scraping and data aggregation using Next.js API routes |
-| 💅 **Frontend (UI)** | Displays aggregated PC parts with filters, search, and a PC builder feature |
-| 🧩 **PC Builder** | Lets users assemble a full PC setup and computes total price |
-| 💾 **Database** | PostgreSQL (via Prisma) for storing and indexing parts |
+| Layer                          | Description                                                                 |
+| ------------------------------ | --------------------------------------------------------------------------- |
+| 🧠 **Backend (API + Scraper)** | Handles scraping and data aggregation using Next.js API routes              |
+| 💅 **Frontend (UI)**           | Displays aggregated PC parts with filters, search, and a PC builder feature |
+| 🧩 **PC Builder**              | Lets users assemble a full PC setup and computes total price                |
+| 💾 **Database**                | PostgreSQL (via Prisma) for storing and indexing parts                      |
 
 ---
 
 ## ✨ Features
 
 ### 🕸️ Web Scraping
+
 - **Multi-retailer support** with configurable pagination
 - **Automatic data normalization** and categorization
 - **Smart image extraction** with multiple fallbacks
 - **Stock status tracking** across retailers
-- **Scheduled automation** with 6-hour intervals
+- **Scheduled automation** with 3-hour intervals
+- **Pagination resume** - Continues from last page until all products scraped
+- **Auto-cleanup** - Removes old products not seen in 30 days
 - **Job logging** for monitoring and debugging
 
 ### 💾 Data Management
+
 - **PostgreSQL database** with Prisma ORM
 - **Efficient upsert operations** for data consistency
 - **Price range tracking** (lowest/highest prices)
@@ -40,12 +44,14 @@ This platform provides a centralized interface for comparing prices, checking st
 - **Brand and model extraction** from product names
 
 ### 🛠️ PC Builder
+
 - **Component selection** by category
 - **Real-time price calculation** from multiple retailers
 - **Build persistence** in database
 - **Price comparison** across stores
 
 ### 🌐 API & UI
+
 - **RESTful API endpoints** for products and scraping
 - **Responsive design** with Tailwind CSS
 - **Search and filtering** capabilities
@@ -55,14 +61,14 @@ This platform provides a centralized interface for comparing prices, checking st
 
 ## 🏗️ Tech Stack
 
-| Category | Technology |
-|-----------|-------------|
-| **Framework** | Next.js 15 (App Router, Full Stack) |
-| **Language** | TypeScript |
-| **Database** | PostgreSQL + Prisma |
-| **Scraping** | Cheerio / Playwright |
-| **Styling** | Tailwind CSS |
-| **Deployment** | Vercel / Railway |
+| Category       | Technology                          |
+| -------------- | ----------------------------------- |
+| **Framework**  | Next.js 15 (App Router, Full Stack) |
+| **Language**   | TypeScript                          |
+| **Database**   | PostgreSQL + Prisma                 |
+| **Scraping**   | Cheerio / Playwright                |
+| **Styling**    | Tailwind CSS                        |
+| **Deployment** | Vercel / Railway                    |
 
 ---
 
@@ -88,6 +94,7 @@ This platform provides a centralized interface for comparing prices, checking st
 ## 🚀 Quick Start
 
 ### Prerequisites
+
 - Node.js 18+ ([Download](https://nodejs.org/))
 - PostgreSQL 15+ ([Download](https://www.postgresql.org/download/))
 
@@ -127,12 +134,12 @@ For detailed setup instructions, see [📘 Quick Start Guide](docs/QUICKSTART.md
 
 ## 📚 Documentation
 
-| Guide | Description |
-|-------|-------------|
-| [🚀 Quick Start](docs/QUICKSTART.md) | Get started in minutes with step-by-step setup |
-| [🕸️ Scraper Setup](docs/SCRAPER_SETUP.md) | Complete scraping configuration & troubleshooting |
-| [🏗️ Project Structure](docs/PROJECT_STRUCTURE.md) | Architecture and file organization reference |
-| [🚀 Deployment](docs/DEPLOYMENT.md) | Deploy to Vercel, Railway, or Docker |
+| Guide                                             | Description                                       |
+| ------------------------------------------------- | ------------------------------------------------- |
+| [🚀 Quick Start](docs/QUICKSTART.md)              | Get started in minutes with step-by-step setup    |
+| [🕸️ Scraper Setup](docs/SCRAPER_SETUP.md)         | Complete scraping configuration & troubleshooting |
+| [🏗️ Project Structure](docs/PROJECT_STRUCTURE.md) | Architecture and file organization reference      |
+| [🚀 Deployment](docs/DEPLOYMENT.md)               | Deploy to Vercel, Railway, or Docker              |
 
 ## 🔧 Common Commands
 
@@ -164,24 +171,35 @@ npm run type-check       # TypeScript check
 - 🔄 **Datablitz** (prepared, currently disabled)
 - 🔄 **PCWorth** (prepared, currently disabled)
 
+### Scraper Features
+
+- **3-Hour Scheduling**: Runs automatically every 3 hours
+- **Pagination Resume**: Continues from last page until all products are scraped
+- **100% Coverage**: Eventually scrapes all pages for complete product data
+- **Auto-Cleanup**: Automatically removes products not seen in 30 days
+- **Smart Tracking**: Database tracks pagination state per retailer/category
+
+For detailed information, see [Pagination Resume Documentation](docs/PAGINATION_RESUME.md).
+
 ### Quick Scraper Usage
 
 ```bash
 # Manual scrape (recommended for testing)
-MAX_PAGES=2 npx tsx scripts/scrape-and-save-bermor.ts
+npm run scrape
 
 # Via API
 curl -X POST http://localhost:3000/api/scrape \
   -H "Content-Type: application/json" \
   -d '{"retailer": "BERMOR"}'
 
-# Automatic (runs every 6 hours when app starts)
+# Automatic (runs every 3 hours when app starts)
 npm run dev
 ```
 
 ### Configuration
 
 Edit `.env`:
+
 ```bash
 # Scraper settings
 BERMOR_MAX_PAGES=50        # 50 pages = ~1,500 products (recommended)

@@ -10,8 +10,8 @@ PCscraper/
 │   ├── QUICKSTART.md          # Quick start guide
 │   └── SCRAPER_SETUP.md       # Scraper configuration
 ├── prisma/                     # Database
-│   ├── migrations/            # Database migrations
-│   └── schema.prisma          # Database schema
+│   ├── migrations/            # Initial migration history
+│   └── schema.prisma          # Database schema (source of truth)
 ├── scripts/                    # Utility scripts
 │   └── setup.sh               # Setup script
 ├── src/                        # Application source
@@ -70,57 +70,57 @@ PCscraper/
 
 ### Configuration Files
 
-| File | Purpose |
-|------|---------|
-| [package.json](package.json) | Dependencies and scripts |
-| [tsconfig.json](tsconfig.json) | TypeScript compiler settings |
-| [next.config.ts](next.config.ts) | Next.js framework configuration |
-| [tailwind.config.ts](tailwind.config.ts) | Tailwind CSS styling |
-| [prisma/schema.prisma](prisma/schema.prisma) | Database schema |
-| [.env.example](.env.example) | Environment variables template |
+| File                                         | Purpose                         |
+| -------------------------------------------- | ------------------------------- |
+| [package.json](package.json)                 | Dependencies and scripts        |
+| [tsconfig.json](tsconfig.json)               | TypeScript compiler settings    |
+| [next.config.ts](next.config.ts)             | Next.js framework configuration |
+| [tailwind.config.ts](tailwind.config.ts)     | Tailwind CSS styling            |
+| [prisma/schema.prisma](prisma/schema.prisma) | Database schema                 |
+| [.env.example](.env.example)                 | Environment variables template  |
 
 ### Core Application
 
-| File | Purpose |
-|------|---------|
-| [src/app/layout.tsx](src/app/layout.tsx) | Root layout with navigation |
-| [src/app/page.tsx](src/app/page.tsx) | Home page with product listings |
-| [src/app/builder/page.tsx](src/app/builder/page.tsx) | PC Builder interface |
-| [src/lib/prisma.ts](src/lib/prisma.ts) | Database client singleton |
-| [src/lib/utils.ts](src/lib/utils.ts) | Utility functions |
+| File                                                 | Purpose                         |
+| ---------------------------------------------------- | ------------------------------- |
+| [src/app/layout.tsx](src/app/layout.tsx)             | Root layout with navigation     |
+| [src/app/page.tsx](src/app/page.tsx)                 | Home page with product listings |
+| [src/app/builder/page.tsx](src/app/builder/page.tsx) | PC Builder interface            |
+| [src/lib/prisma.ts](src/lib/prisma.ts)               | Database client singleton       |
+| [src/lib/utils.ts](src/lib/utils.ts)                 | Utility functions               |
 
 ### API Routes
 
-| Route | Purpose |
-|-------|---------|
+| Route                                          | Purpose                    |
+| ---------------------------------------------- | -------------------------- |
 | [/api/products](src/app/api/products/route.ts) | Product listing and search |
-| [/api/scrape](src/app/api/scrape/route.ts) | Trigger scraping jobs |
+| [/api/scrape](src/app/api/scrape/route.ts)     | Trigger scraping jobs      |
 
 ### Scraper Module
 
-| File | Purpose |
-|------|---------|
-| [src/scraper/index.ts](src/scraper/index.ts) | Scraping orchestrator |
-| [src/scraper/normalizer.ts](src/scraper/normalizer.ts) | Data normalization |
-| [src/scraper/retailers/datablitz.ts](src/scraper/retailers/datablitz.ts) | Datablitz scraper |
-| [src/scraper/retailers/pcworth.ts](src/scraper/retailers/pcworth.ts) | PCWorth scraper |
-| [src/scraper/retailers/bermor.ts](src/scraper/retailers/bermor.ts) | Bermor scraper |
+| File                                                                     | Purpose               |
+| ------------------------------------------------------------------------ | --------------------- |
+| [src/scraper/index.ts](src/scraper/index.ts)                             | Scraping orchestrator |
+| [src/scraper/normalizer.ts](src/scraper/normalizer.ts)                   | Data normalization    |
+| [src/scraper/retailers/datablitz.ts](src/scraper/retailers/datablitz.ts) | Datablitz scraper     |
+| [src/scraper/retailers/pcworth.ts](src/scraper/retailers/pcworth.ts)     | PCWorth scraper       |
+| [src/scraper/retailers/bermor.ts](src/scraper/retailers/bermor.ts)       | Bermor scraper        |
 
 ### UI Components
 
-| Component | Purpose |
-|-----------|---------|
-| [ProductList.tsx](src/features/ui/components/ProductList.tsx) | Product grid with filters |
-| [PCBuilder.tsx](src/features/pc-builder/components/PCBuilder.tsx) | PC configuration tool |
+| Component                                                         | Purpose                   |
+| ----------------------------------------------------------------- | ------------------------- |
+| [ProductList.tsx](src/features/ui/components/ProductList.tsx)     | Product grid with filters |
+| [PCBuilder.tsx](src/features/pc-builder/components/PCBuilder.tsx) | PC configuration tool     |
 
 ### Deployment
 
-| File | Purpose |
-|------|---------|
-| [Dockerfile](Dockerfile) | Container image definition |
-| [docker-compose.yml](docker-compose.yml) | Local Docker setup |
-| [vercel.json](vercel.json) | Vercel deployment config |
-| [DEPLOYMENT.md](DEPLOYMENT.md) | Deployment instructions |
+| File                                     | Purpose                    |
+| ---------------------------------------- | -------------------------- |
+| [Dockerfile](Dockerfile)                 | Container image definition |
+| [docker-compose.yml](docker-compose.yml) | Local Docker setup         |
+| [vercel.json](vercel.json)               | Vercel deployment config   |
+| [DEPLOYMENT.md](DEPLOYMENT.md)           | Deployment instructions    |
 
 ## Database Schema
 
@@ -140,18 +140,17 @@ PCscraper/
 
 ## NPM Scripts
 
-| Script | Description |
-|--------|-------------|
-| `npm run dev` | Start development server |
-| `npm run build` | Build for production |
-| `npm start` | Start production server |
-| `npm run lint` | Run ESLint |
-| `npm run type-check` | TypeScript type checking |
-| `npm run db:generate` | Generate Prisma client |
-| `npm run db:push` | Push schema to database |
-| `npm run db:migrate` | Run database migrations |
-| `npm run db:studio` | Open Prisma Studio |
-| `npm run scrape` | Run scraper manually |
+| Script                | Description              |
+| --------------------- | ------------------------ |
+| `npm run dev`         | Start development server |
+| `npm run build`       | Build for production     |
+| `npm start`           | Start production server  |
+| `npm run lint`        | Run ESLint               |
+| `npm run type-check`  | TypeScript type checking |
+| `npm run db:generate` | Generate Prisma client   |
+| `npm run db:push`     | Sync schema to database  |
+| `npm run db:studio`   | Open Prisma Studio       |
+| `npm run scrape`      | Run scraper manually     |
 
 ## Environment Variables
 
@@ -168,27 +167,32 @@ Required environment variables (see [.env.example](.env.example)):
 ## Tech Stack
 
 ### Frontend
+
 - **Next.js 15** - React framework with App Router
 - **TypeScript** - Type-safe JavaScript
 - **Tailwind CSS** - Utility-first CSS framework
 - **React 18** - UI library
 
 ### Backend
+
 - **Next.js API Routes** - Serverless API endpoints
 - **Prisma** - Type-safe database ORM
 - **PostgreSQL** - Relational database
 
 ### Scraping
+
 - **Cheerio** - Fast HTML parsing
 - **Axios** - HTTP client
 - **Playwright** - Browser automation (optional)
 
 ### Development
+
 - **ESLint** - Code linting
 - **Prettier** - Code formatting
 - **TypeScript** - Static typing
 
 ### Deployment
+
 - **Vercel** - Serverless deployment platform
 - **Docker** - Containerization
 - **Railway** - Alternative hosting

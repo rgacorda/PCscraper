@@ -49,18 +49,20 @@ BERMOR_MAX_PAGES=50
 ### 4. Database Options
 
 **Option A: Vercel Postgres (Recommended)**
+
 - Easy integration with Vercel
 - Automatic connection string
 - [Setup Guide](https://vercel.com/docs/storage/vercel-postgres)
 
 **Option B: External PostgreSQL**
+
 - [Railway](https://railway.app/) - Free tier available
 - [Supabase](https://supabase.com/) - Free PostgreSQL hosting
 - [Neon](https://neon.tech/) - Serverless Postgres
 
-### 5. Run Database Migrations
+### 5. Sync Database Schema
 
-After deployment, run migrations:
+After deployment, sync your database schema:
 
 ```bash
 # Install Vercel CLI
@@ -69,9 +71,9 @@ npm install -g vercel
 # Link to your project
 vercel link
 
-# Run migration
+# Sync database schema
 vercel env pull .env.local
-npx prisma db push
+npx prisma db push --skip-generate
 ```
 
 ## Docker Deployment
@@ -82,8 +84,8 @@ npx prisma db push
 # Build and start
 docker-compose up -d
 
-# Run migrations
-docker-compose exec app npx prisma db push
+# Sync database schema
+docker-compose exec app npx prisma db push --skip-generate
 
 # View logs
 docker-compose logs -f app
@@ -133,6 +135,7 @@ railway up
 ### 1. Verify Deployment
 
 Check these endpoints:
+
 - `https://your-domain.com` - Homepage
 - `https://your-domain.com/api/products` - Products API
 - `https://your-domain.com/builder` - PC Builder
@@ -151,16 +154,16 @@ Visit `/auth/register` to create an admin account
 
 ## Environment Variables Reference
 
-| Variable | Description | Required |
-|----------|-------------|----------|
-| `DATABASE_URL` | PostgreSQL connection string | Yes |
-| `NEXTAUTH_SECRET` | NextAuth encryption key | Yes |
-| `NEXTAUTH_URL` | Full app URL | Yes |
-| `NODE_ENV` | Environment (production) | Yes |
-| `NEXT_PUBLIC_APP_URL` | Public app URL | Yes |
-| `SCRAPER_TIMEOUT` | Scraper timeout (ms) | No |
-| `SCRAPER_MAX_RETRIES` | Max retry attempts | No |
-| `BERMOR_MAX_PAGES` | Pages to scrape | No |
+| Variable              | Description                  | Required |
+| --------------------- | ---------------------------- | -------- |
+| `DATABASE_URL`        | PostgreSQL connection string | Yes      |
+| `NEXTAUTH_SECRET`     | NextAuth encryption key      | Yes      |
+| `NEXTAUTH_URL`        | Full app URL                 | Yes      |
+| `NODE_ENV`            | Environment (production)     | Yes      |
+| `NEXT_PUBLIC_APP_URL` | Public app URL               | Yes      |
+| `SCRAPER_TIMEOUT`     | Scraper timeout (ms)         | No       |
+| `SCRAPER_MAX_RETRIES` | Max retry attempts           | No       |
+| `BERMOR_MAX_PAGES`    | Pages to scrape              | No       |
 
 ## Troubleshooting
 
@@ -210,6 +213,7 @@ npm run build
 ## Backup Strategy
 
 1. **Database Backups**
+
    - Vercel Postgres: Automatic daily backups
    - Railway: Automatic backups on Pro plan
    - External: Configure backup schedule
@@ -230,7 +234,7 @@ npm audit fix
 ### Database Migrations
 
 ```bash
-npx prisma migrate deploy
+npx prisma db push --skip-generate
 ```
 
 ## Support Resources

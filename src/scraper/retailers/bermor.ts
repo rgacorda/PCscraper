@@ -30,7 +30,11 @@ const CATEGORY_URLS = {
   ACCESSORY: [`${BASE_URL}/computer-accessories/`], // Includes keyboards and mice
 };
 
-export async function scrapeBermor(maxPages: number = 5): Promise<ScrapedProduct[]> {
+export async function scrapeBermor(
+  maxPages: number = parseInt(process.env.BERMOR_MAX_PAGES || '5', 10),
+  startPage: number = 1,
+  categoryFilter?: string
+): Promise<ScrapedProduct[]> {
   const products: ScrapedProduct[] = [];
 
   // Support unlimited pages when maxPages is 0 or negative
@@ -40,12 +44,17 @@ export async function scrapeBermor(maxPages: number = 5): Promise<ScrapedProduct
   console.log(
     `🛒 Starting Bermor category-based scraper (${
       isUnlimited ? 'unlimited' : `max ${maxPages}`
-    } pages per category)...`
+    } pages per category, starting from page ${startPage})...`
   );
 
   try {
     // Scrape each category
     for (const [categoryName, urls] of Object.entries(CATEGORY_URLS)) {
+      // Skip if category filter is set and doesn't match
+      if (categoryFilter && categoryName !== categoryFilter) {
+        continue;
+      }
+
       console.log(`\n📦 Scraping category: ${categoryName}`);
 
       for (const categoryUrl of urls) {
@@ -53,7 +62,8 @@ export async function scrapeBermor(maxPages: number = 5): Promise<ScrapedProduct
         const categoryProducts = await scrapeCategoryUrl(
           categoryUrl,
           categoryName,
-          effectiveMaxPages
+          effectiveMaxPages,
+          startPage
         );
         products.push(...categoryProducts);
 
@@ -74,10 +84,11 @@ export async function scrapeBermor(maxPages: number = 5): Promise<ScrapedProduct
 async function scrapeCategoryUrl(
   categoryUrl: string,
   categoryHint: string,
-  maxPages: number
+  maxPages: number,
+  startPage: number = 1
 ): Promise<ScrapedProduct[]> {
   const products: ScrapedProduct[] = [];
-  let currentPage = 1;
+  let currentPage = startPage;
   let hasNextPage = true;
   let productsWithoutImages = 0;
 

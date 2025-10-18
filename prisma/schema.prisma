@@ -151,6 +151,22 @@ model ScrapeJob {
   @@map("scrape_jobs")
 }
 
+// Scraping Progress Tracking (for pagination resume)
+model ScrapingState {
+  id              String   @id @default(cuid())
+  retailer        Retailer
+  category        String // Category name (e.g., "CPU", "GPU") for Bermor/PCWorth, or empty for Datablitz
+  currentPage     Int      @default(1)
+  lastCompletedAt DateTime @default(now())
+  isComplete      Boolean  @default(false) // true when all pages scraped
+
+  updatedAt DateTime @updatedAt
+
+  @@unique([retailer, category])
+  @@index([retailer])
+  @@map("scraping_state")
+}
+
 // NextAuth Models
 model Account {
   id                String  @id @default(cuid())
