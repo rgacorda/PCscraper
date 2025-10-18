@@ -2,7 +2,7 @@ import { ScrapedProduct } from '../normalizer';
 import { fetchWithRetry } from '@/lib/utils';
 
 // Helper function to build API URLs
-const buildUrl = (slug: string, category: string) => {
+const buildUrl = (slug: string, category: string, branchId: number) => {
   const base = 'https://apiv4.pcworth.com/api/ecomm/products/available/get';
   const params = [
     `slug=${slug}`,
@@ -12,125 +12,208 @@ const buildUrl = (slug: string, category: string) => {
     `keyword=`,
     `available_only=0`,
     `limit=48`,
-    `branch_id=1`,
+    `branch_id=${branchId}`,
   ]
     .filter(Boolean)
     .join('&');
   return `${base}?${params}`;
 };
 
-export async function scrapePCWorth(): Promise<ScrapedProduct[]> {
-  const products: ScrapedProduct[] = [];
+// Helper function to scrape a single branch
+async function scrapeBranch(branchId: number): Promise<any[]> {
+  const allItems: any[] = [];
+  const LIMIT = 48;
+  const MAX_PAGES = 50;
 
-  // Categories to scrape
-  const CATEGORY_URLS = {
-    GPU: buildUrl('pc-parts', 'GPU'),
-    CPU: buildUrl('pc-parts', 'CPU'),
-    MOTHERBOARD: buildUrl('pc-parts', 'MOTHERBOARD'),
-    RAM: buildUrl('pc-parts', 'RAM'),
-    SSD: buildUrl('pc-parts', 'SSD'),
-    HDD: buildUrl('pc-parts', 'HDD'),
-    PSU: buildUrl('pc-parts', 'PSU'),
-    CASE: buildUrl('pc-parts', 'Casing'),
-    CPU_COOLER: buildUrl('pc-parts', 'CPU Cooler'),
-    CASE_FAN: buildUrl('pc-parts', 'Fan'),
-    MONITOR: buildUrl('peripherals', 'Monitor'),
-    PERIPHERAL: [
-      buildUrl('peripherals', 'Keyboard'),
-      buildUrl('peripherals', 'Headset'),
-      buildUrl('peripherals', 'WEBCAM'),
-      buildUrl('peripherals', 'CONTROLLER'),
-    ],
-    ACCESSORIES: buildUrl('accessories-and-others', ''),
+  // Categories to scrape with their slugs and category parameters
+  const CATEGORIES = [
+    { slug: 'pc-parts', category: 'GPU', key: 'GPU' },
+    { slug: 'pc-parts', category: 'CPU', key: 'CPU' },
+    { slug: 'pc-parts', category: 'MOTHERBOARD', key: 'MOTHERBOARD' },
+    { slug: 'pc-parts', category: 'RAM', key: 'RAM' },
+    { slug: 'pc-parts', category: 'SSD', key: 'SSD' },
+    { slug: 'pc-parts', category: 'HDD', key: 'HDD' },
+    { slug: 'pc-parts', category: 'PSU', key: 'PSU' },
+    { slug: 'pc-parts', category: 'Casing', key: 'CASE' },
+    { slug: 'pc-parts', category: 'CPU Cooler', key: 'CPU_COOLER' },
+    { slug: 'pc-parts', category: 'Fan', key: 'CASE_FAN' },
+    { slug: 'peripherals', category: 'Monitor', key: 'MONITOR' },
+    { slug: 'peripherals', category: 'Keyboard', key: 'PERIPHERAL' },
+    { slug: 'peripherals', category: 'Headset', key: 'PERIPHERAL' },
+    { slug: 'peripherals', category: 'WEBCAM', key: 'PERIPHERAL' },
+    { slug: 'peripherals', category: 'CONTROLLER', key: 'PERIPHERAL' },
+    { slug: 'accessories-and-others', category: '', key: 'ACCESSORIES' },
+  ];
+
+  // map scraper category keys to PartCategory enum values used in DB
+  const CATEGORY_TO_PART: Record<string, string> = {
+    GPU: 'GPU',
+    CPU: 'CPU',
+    MOTHERBOARD: 'MOTHERBOARD',
+    RAM: 'RAM',
+    SSD: 'STORAGE',
+    HDD: 'STORAGE',
+    PSU: 'PSU',
+    CASE: 'CASE',
+    CPU_COOLER: 'CPU_COOLER',
+    CASE_FAN: 'CASE_FAN',
+    MONITOR: 'MONITOR',
+    PERIPHERAL: 'PERIPHERAL',
+    ACCESSORIES: 'ACCESSORY',
   };
+
+  console.log(`  🏪 Scraping branch ${branchId}...`);
+
+  for (const categoryInfo of CATEGORIES) {
+    const template = buildUrl(categoryInfo.slug, categoryInfo.category, branchId);
+    let page = 1;
+
+    while (page <= MAX_PAGES) {
+      const apiUrl = template.replace('{PAGE}', String(page));
+
+      try {
+        const res: any = await fetchWithRetry(apiUrl);
+        let json: any;
+
+        if (typeof res === 'string') {
+          json = JSON.parse(res);
+        } else if (res && typeof res.json === 'function') {
+          json = await res.json();
+        } else {
+          json = res;
+        }
+
+        // Accept responses that are arrays or contain arrays in common keys
+        let items: any[] = [];
+        if (Array.isArray(json)) {
+          items = json;
+        } else {
+          items =
+            json?.data?.items ||
+            json?.data?.products ||
+            json?.products ||
+            json?.items ||
+            (Array.isArray(json?.data) ? json.data : undefined) ||
+            [];
+          if (!Array.isArray(items) || items.length === 0) {
+            const found = Object.values(json || {}).find((v) => Array.isArray(v));
+            items = (found as any[]) || [];
+          }
+        }
+
+        if (!items || items.length === 0) {
+          break;
+        }
+
+        // tag items with the category and branch
+        for (const it of items) {
+          (it as any).__scraperCategory = CATEGORY_TO_PART[categoryInfo.key] || 'OTHER';
+          (it as any).__branchId = branchId;
+        }
+
+        allItems.push(...items);
+
+        if (items.length < LIMIT) {
+          break;
+        }
+
+        page += 1;
+      } catch (err) {
+        console.error(
+          `    ❌ Error scraping branch ${branchId}, category ${categoryInfo.key}, page ${page}:`,
+          err
+        );
+        break;
+      }
+    }
+  }
+
+  console.log(`  ✓ Branch ${branchId}: Found ${allItems.length} items`);
+  return allItems;
+}
+
+export async function scrapePCWorth(): Promise<ScrapedProduct[]> {
+  console.log('🔍 Starting PCWorth scraper for branches 1, 2, and 4...');
+
+  const BRANCH_IDS = [1, 2, 4];
+  const products: ScrapedProduct[] = [];
 
   // Fetch GPU category pages and paginate until last page
   try {
-    const LIMIT = 48;
-    const MAX_PAGES = 50; // safety cap to avoid infinite loops
-    const allItems: any[] = [];
+    // Map to store products by their slug (unique identifier)
+    // Key: product slug, Value: { item, branches: Set<branchId>, hasStock: boolean }
+    const productMap = new Map<
+      string,
+      {
+        item: any;
+        branches: Set<number>;
+        hasStock: boolean;
+        stockByBranch: Map<number, number>;
+      }
+    >();
 
-    // Iterate every category URL in CATEGORY_URLS and paginate each one
-    // map scraper category keys to PartCategory enum values used in DB
-    const CATEGORY_TO_PART: Record<string, string> = {
-      GPU: 'GPU',
-      CPU: 'CPU',
-      MOTHERBOARD: 'MOTHERBOARD',
-      RAM: 'RAM',
-      SSD: 'STORAGE', // map SSD -> STORAGE
-      HDD: 'STORAGE', // map HDD -> STORAGE
-      PSU: 'PSU',
-      CASE: 'CASE',
-      CPU_COOLER: 'CPU_COOLER',
-      CASE_FAN: 'CASE_FAN',
-      MONITOR: 'MONITOR',
-      PERIPHERAL: 'PERIPHERAL',
-      ACCESSORIES: 'ACCESSORY',
-    };
+    // Scrape all branches
+    for (const branchId of BRANCH_IDS) {
+      const branchItems = await scrapeBranch(branchId);
 
-    for (const [categoryKey, urlTemplate] of Object.entries(CATEGORY_URLS)) {
-      // support either a single template string or an array of templates (e.g. PERIPHERAL)
-      const templates = Array.isArray(urlTemplate) ? urlTemplate : [urlTemplate];
+      // Process items from this branch
+      for (const item of branchItems) {
+        const slug = item.slug || item.url_slug || item.product_slug;
+        if (!slug) continue;
 
-      for (const template of templates) {
-        let page = 1;
-        while (page <= MAX_PAGES) {
-          const apiUrl = template.replace('{PAGE}', String(page));
-          const res: any = await fetchWithRetry(apiUrl);
-          let json: any;
+        const stocksLeft = item.stocks_left ?? 0;
+        const hasStock = stocksLeft > 0;
 
-          if (typeof res === 'string') {
-            json = JSON.parse(res);
-          } else if (res && typeof res.json === 'function') {
-            json = await res.json();
-          } else {
-            json = res;
+        if (productMap.has(slug)) {
+          // Product exists from another branch - merge data
+          const existing = productMap.get(slug)!;
+          existing.branches.add(branchId);
+          existing.stockByBranch.set(branchId, stocksLeft);
+
+          // If this branch has stock and previous didn't, update to in stock
+          if (hasStock) {
+            existing.hasStock = true;
           }
 
-          // Accept responses that are arrays or contain arrays in common keys
-          let items: any[] = [];
-          if (Array.isArray(json)) {
-            items = json;
-          } else {
-            items =
-              json?.data?.items ||
-              json?.data?.products ||
-              json?.products ||
-              json?.items ||
-              (Array.isArray(json?.data) ? json.data : undefined) ||
-              [];
-            if (!Array.isArray(items) || items.length === 0) {
-              // fallback: find the first array value in the response object
-              const found = Object.values(json || {}).find((v) => Array.isArray(v));
-              items = (found as any[]) || [];
-            }
+          // Update item data if this branch has more complete information
+          if (!existing.item.img_thumbnail && item.img_thumbnail) {
+            existing.item.img_thumbnail = item.img_thumbnail;
           }
-
-          if (!items || items.length === 0) {
-            // no more items -> break pagination for this template
-            break;
+          if (!existing.item.product_name && item.product_name) {
+            existing.item.product_name = item.product_name;
           }
+        } else {
+          // New product - add to map
+          const stockByBranch = new Map<number, number>();
+          stockByBranch.set(branchId, stocksLeft);
 
-          // tag items with the category we scraped from (mapped to PartCategory)
-          for (const it of items) {
-            (it as any).__scraperCategory = CATEGORY_TO_PART[categoryKey] || 'OTHER';
-          }
-
-          allItems.push(...items);
-
-          // If returned items fewer than limit, we reached last page for this template
-          if (items.length < LIMIT) {
-            break;
-          }
-
-          page += 1;
+          productMap.set(slug, {
+            item,
+            branches: new Set([branchId]),
+            hasStock,
+            stockByBranch,
+          });
         }
       }
     }
 
-    const mapped = (allItems as any[])
-      .map((item) => {
-        // Adjusted to match the JSON fields returned by the API
+    console.log(`✓ Total unique products found: ${productMap.size}`);
+    console.log(
+      `  📊 Products with stock: ${
+        Array.from(productMap.values()).filter((p) => p.hasStock).length
+      }`
+    );
+    console.log(
+      `  📊 Products in multiple branches: ${
+        Array.from(productMap.values()).filter((p) => p.branches.size > 1).length
+      }`
+    );
+
+    // Convert merged data to ScrapedProduct format
+    const allItems = Array.from(productMap.values());
+
+    const mapped = allItems
+      .map(({ item, hasStock, branches, stockByBranch }) => {
         const name =
           item.product_name || item.name || item.title || item.productTitle || '';
         const priceRaw =
@@ -157,8 +240,16 @@ export async function scrapePCWorth(): Promise<ScrapedProduct[]> {
           item.mfr_logo ||
           '';
 
-        // set product as in stock when stocks_left > 0
-        const inStock = (item.stocks_left ?? 0) > 0;
+        // Build availability string with branch info
+        const branchList = Array.from(branches).sort().join(', ');
+        const stockInfo = Array.from(stockByBranch.entries())
+          .filter(([_, stock]) => stock > 0)
+          .map(([branch, stock]) => `Branch ${branch}: ${stock}`)
+          .join(', ');
+
+        const availability = hasStock
+          ? `in stock (${stockInfo || `Branches: ${branchList}`})`
+          : `out of stock (Branches: ${branchList})`;
 
         return {
           name,
@@ -166,9 +257,13 @@ export async function scrapePCWorth(): Promise<ScrapedProduct[]> {
           url,
           imageUrl,
           category: item.__scraperCategory || item.category || 'UNKNOWN',
-          raw: item,
-          inStock,
-          availability: inStock ? 'in stock' : 'out of stock',
+          raw: {
+            ...item,
+            __branches: Array.from(branches),
+            __stockByBranch: Object.fromEntries(stockByBranch),
+          },
+          inStock: hasStock,
+          availability,
         } as ScrapedProduct;
       })
       .filter((p) => p.name);
@@ -178,5 +273,6 @@ export async function scrapePCWorth(): Promise<ScrapedProduct[]> {
     console.error('Error fetching PCWorth API:', err);
   }
 
+  console.log(`✅ PCWorth scraper completed: ${products.length} products`);
   return products;
 }
