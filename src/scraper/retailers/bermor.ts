@@ -2,37 +2,32 @@ import * as cheerio from 'cheerio';
 import { ScrapedProduct } from '../normalizer';
 import { fetchWithRetry } from '@/lib/utils';
 
+const BASE_URL = 'https://bermorzone.com.ph/product-category';
+
 // Category mappings for Bermor Zone
 const CATEGORY_URLS = {
   CPU: [
-    'https://bermorzone.com.ph/product-category/processors/intel-processor/',
-    'https://bermorzone.com.ph/product-category/processors/amd-processors/',
+    `${BASE_URL}/processors/intel-processor/`,
+    `${BASE_URL}/processors/amd-processors/`,
   ],
   MOTHERBOARD: [
-    'https://bermorzone.com.ph/product-category/motherboard/intel-motherboards/',
-    'https://bermorzone.com.ph/product-category/motherboard/amd-motherboards/',
+    `${BASE_URL}/motherboard/intel-motherboards/`,
+    `${BASE_URL}/motherboard/amd-motherboards/`,
   ],
-  RAM: ['https://bermorzone.com.ph/product-category/memory-modules/desktop-memory/'],
-  HDD: ['https://bermorzone.com.ph/product-category/storage-devices/hard-drives/'],
-  SSD: ['https://bermorzone.com.ph/product-category/storage-devices/solid-state-drives/'],
+  RAM: [`${BASE_URL}/memory-modules/desktop-memory/`],
+  HDD: [`${BASE_URL}/storage-devices/hard-drives/`],
+  SSD: [`${BASE_URL}/storage-devices/solid-state-drives/`],
   GPU: [
-    'https://bermorzone.com.ph/product-category/video-cards/amd-video-cards/',
-    'https://bermorzone.com.ph/product-category/video-cards/nvidia-video-cards/',
+    `${BASE_URL}/video-cards/amd-video-cards/`,
+    `${BASE_URL}/video-cards/nvidia-video-cards/`,
   ],
-  CASE: ['https://bermorzone.com.ph/product-category/chassis/'],
-  MONITOR: ['https://bermorzone.com.ph/product-category/monitors/'],
-  PSU: ['https://bermorzone.com.ph/product-category/power-sources/power-supply-unit/'],
-  CPU_COOLER_AIR: [
-    'https://bermorzone.com.ph/product-category/cooling-systems/aircooling-system/',
-  ],
-  CPU_COOLER_AIO: [
-    'https://bermorzone.com.ph/product-category/cooling-systems/aio-liquid-cooling-system/',
-  ],
-  CASE_FAN: ['https://bermorzone.com.ph/product-category/cooling-systems/fanshubs/'],
-  ACCESSORY: [
-    // Scrape accessories, including keyboards and mice from this category
-    'https://bermorzone.com.ph/product-category/computer-accessories/',
-  ],
+  CASE: [`${BASE_URL}/chassis/`],
+  MONITOR: [`${BASE_URL}/monitors/`],
+  PSU: [`${BASE_URL}/power-sources/power-supply-unit/`],
+  CPU_COOLER_AIR: [`${BASE_URL}/cooling-systems/aircooling-system/`],
+  CPU_COOLER_AIO: [`${BASE_URL}/cooling-systems/aio-liquid-cooling-system/`],
+  CASE_FAN: [`${BASE_URL}/cooling-systems/fanshubs/`],
+  ACCESSORY: [`${BASE_URL}/computer-accessories/`], // Includes keyboards and mice
 };
 
 export async function scrapeBermor(maxPages: number = 5): Promise<ScrapedProduct[]> {

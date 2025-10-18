@@ -1,35 +1,47 @@
 import { ScrapedProduct } from '../normalizer';
 import { fetchWithRetry } from '@/lib/utils';
+
+// Helper function to build API URLs
+const buildUrl = (slug: string, category: string) => {
+  const base = 'https://apiv4.pcworth.com/api/ecomm/products/available/get';
+  const params = [
+    `slug=${slug}`,
+    `page={PAGE}`,
+    category ? `qcategory=${category}` : '',
+    `sort_direction=asc`,
+    `keyword=`,
+    `available_only=0`,
+    `limit=48`,
+    `branch_id=1`,
+  ]
+    .filter(Boolean)
+    .join('&');
+  return `${base}?${params}`;
+};
+
 export async function scrapePCWorth(): Promise<ScrapedProduct[]> {
   const products: ScrapedProduct[] = [];
 
   // Categories to scrape
   const CATEGORY_URLS = {
-    GPU: 'https://apiv4.pcworth.com/api/ecomm/products/available/get?slug=pc-parts&page={PAGE}&qcategory=GPU&sort_direction=asc&keyword=&available_only=0&limit=48&branch_id=1',
-    CPU: 'https://apiv4.pcworth.com/api/ecomm/products/available/get?slug=pc-parts&page={PAGE}&qcategory=CPU&sort_direction=asc&keyword=&available_only=0&limit=48&branch_id=1',
-    MOTHERBOARD:
-      'https://apiv4.pcworth.com/api/ecomm/products/available/get?slug=pc-parts&page={PAGE}&qcategory=MOTHERBOARD&sort_direction=asc&keyword=&available_only=0&limit=48&branch_id=1',
-    RAM: 'https://apiv4.pcworth.com/api/ecomm/products/available/get?slug=pc-parts&page={PAGE}&qcategory=RAM&sort_direction=asc&keyword=&available_only=0&limit=48&branch_id=1',
-    SSD: 'https://apiv4.pcworth.com/api/ecomm/products/available/get?slug=pc-parts&page={PAGE}&qcategory=SSD&sort_direction=asc&keyword=&available_only=0&limit=48&branch_id=1',
-    HDD: 'https://apiv4.pcworth.com/api/ecomm/products/available/get?slug=pc-parts&page={PAGE}&qcategory=HDD&sort_direction=asc&keyword=&available_only=0&limit=48&branch_id=1',
-    PSU: 'https://apiv4.pcworth.com/api/ecomm/products/available/get?slug=pc-parts&page={PAGE}&qcategory=PSU&sort_direction=asc&keyword=&available_only=0&limit=48&branch_id=1',
-    CASE: 'https://apiv4.pcworth.com/api/ecomm/products/available/get?limit=48&sort_direction=asc&slug=pc-parts&page={PAGE}&qcategory=Casing&keyword=&available_only=0&branch_id=1',
-    CPU_COOLER:
-      'https://apiv4.pcworth.com/api/ecomm/products/available/get?limit=48&sort_direction=asc&slug=pc-parts&page={PAGE}&qcategory=CPU+Cooler&keyword=&available_only=0&branch_id=1',
-    CASE_FAN:
-      'https://apiv4.pcworth.com/api/ecomm/products/available/get?limit=48&sort_direction=asc&slug=pc-parts&page={PAGE}&qcategory=Fan&keyword=&available_only=0&branch_id=1',
-    MONITOR:
-      'https://apiv4.pcworth.com/api/ecomm/products/available/get?slug=peripherals&page={PAGE}&qcategory=Monitor&sort_direction=asc&keyword=&available_only=0&limit=48&branch_id=1',
+    GPU: buildUrl('pc-parts', 'GPU'),
+    CPU: buildUrl('pc-parts', 'CPU'),
+    MOTHERBOARD: buildUrl('pc-parts', 'MOTHERBOARD'),
+    RAM: buildUrl('pc-parts', 'RAM'),
+    SSD: buildUrl('pc-parts', 'SSD'),
+    HDD: buildUrl('pc-parts', 'HDD'),
+    PSU: buildUrl('pc-parts', 'PSU'),
+    CASE: buildUrl('pc-parts', 'Casing'),
+    CPU_COOLER: buildUrl('pc-parts', 'CPU Cooler'),
+    CASE_FAN: buildUrl('pc-parts', 'Fan'),
+    MONITOR: buildUrl('peripherals', 'Monitor'),
     PERIPHERAL: [
-      'https://apiv4.pcworth.com/api/ecomm/products/available/get?slug=peripherals&page={PAGE}&qcategory=Monitor&sort_direction=asc&keyword=&available_only=0&limit=48&branch_id=1',
-      'https://apiv4.pcworth.com/api/ecomm/products/available/get?slug=peripherals&page={PAGE}&qcategory=Keyboard&sort_direction=asc&keyword=&available_only=0&limit=48&branch_id=1',
-      'https://apiv4.pcworth.com/api/ecomm/products/available/get?slug=peripherals&page={PAGE}&qcategory=Keyboard&sort_direction=asc&keyword=&available_only=0&limit=48&branch_id=1',
-      'https://apiv4.pcworth.com/api/ecomm/products/available/get?slug=peripherals&page={PAGE}&qcategory=Headset&sort_direction=asc&keyword=&available_only=0&limit=48&branch_id=1',
-      'https://apiv4.pcworth.com/api/ecomm/products/available/get?slug=peripherals&page={PAGE}&qcategory=WEBCAM&sort_direction=asc&keyword=&available_only=0&limit=48&branch_id=1',
-      'https://apiv4.pcworth.com/api/ecomm/products/available/get?slug=peripherals&page={PAGE}&qcategory=CONTROLLER&sort_direction=asc&keyword=&available_only=0&limit=48&branch_id=1',
+      buildUrl('peripherals', 'Keyboard'),
+      buildUrl('peripherals', 'Headset'),
+      buildUrl('peripherals', 'WEBCAM'),
+      buildUrl('peripherals', 'CONTROLLER'),
     ],
-    ACCESSORIES:
-      'https://apiv4.pcworth.com/api/ecomm/products/available/get?slug=accessories-and-others&page={PAGE}&keyword=&sort_direction=asc&available_only=0&limit=48&branch_id=1',
+    ACCESSORIES: buildUrl('accessories-and-others', ''),
   };
 
   // Fetch GPU category pages and paginate until last page
