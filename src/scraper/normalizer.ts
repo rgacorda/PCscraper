@@ -60,17 +60,27 @@ function categorizeProduct(name: string, hint?: string): PartCategory {
     if (hint === 'CASE') return PartCategory.CASE;
     if (hint === 'MONITOR') return PartCategory.MONITOR;
     if (hint === 'PSU') return PartCategory.PSU;
-    if (hint === 'CPU_COOLER_AIR' || hint === 'CPU_COOLER_AIO') return PartCategory.CPU_COOLER;
+    if (hint === 'CPU_COOLER_AIR' || hint === 'CPU_COOLER_AIO')
+      return PartCategory.CPU_COOLER;
     if (hint === 'CASE_FAN') return PartCategory.CASE_FAN;
   }
 
   // Check CPU_COOLER FIRST (before CPU and accessories)
   const cpuCoolerKeywords = [
-    'cpu cooler', 'cpu cooling', 'processor cooler',
-    'cpu air cooler', 'cpu tower cooler',
-    'aio', 'water cooler', 'water cooling', 'liquid cooler', 'liquid cooling',
-    'tower cooler', 'air cooler',
-    'cpu heatsink', 'cooler for cpu'
+    'cpu cooler',
+    'cpu cooling',
+    'processor cooler',
+    'cpu air cooler',
+    'cpu tower cooler',
+    'aio',
+    'water cooler',
+    'water cooling',
+    'liquid cooler',
+    'liquid cooling',
+    'tower cooler',
+    'air cooler',
+    'cpu heatsink',
+    'cooler for cpu',
   ];
   for (const keyword of cpuCoolerKeywords) {
     if (nameLower.includes(keyword) || hintLower.includes(keyword)) {
@@ -80,69 +90,103 @@ function categorizeProduct(name: string, hint?: string): PartCategory {
 
   // Check accessories (but be more specific to avoid false positives)
   // Thermal paste & compounds
-  if (nameLower.includes('thermal paste') ||
-      nameLower.includes('thermal compound') ||
-      nameLower.includes('thermal pad') ||
-      nameLower.includes('thermal grease')) {
+  if (
+    nameLower.includes('thermal paste') ||
+    nameLower.includes('thermal compound') ||
+    nameLower.includes('thermal pad') ||
+    nameLower.includes('thermal grease')
+  ) {
     return PartCategory.ACCESSORY;
   }
 
   // Cables
-  if ((nameLower.includes('cable') || nameLower.includes('sleeved')) &&
-      !nameLower.includes('psu') &&
-      !nameLower.includes('power supply')) {
+  if (
+    (nameLower.includes('cable') || nameLower.includes('sleeved')) &&
+    !nameLower.includes('psu') &&
+    !nameLower.includes('power supply')
+  ) {
     return PartCategory.ACCESSORY;
   }
 
   // Storage enclosures
-  if (nameLower.includes('enclosure') ||
-      (nameLower.includes('external') && (nameLower.includes('ssd') || nameLower.includes('hdd')))) {
+  if (
+    nameLower.includes('enclosure') ||
+    (nameLower.includes('external') &&
+      (nameLower.includes('ssd') || nameLower.includes('hdd')))
+  ) {
     return PartCategory.ACCESSORY;
   }
 
-  // GPU brackets and support (accessories, not GPU itself)
-  if ((nameLower.includes('gpu bracket') ||
-       nameLower.includes('gpu support') ||
-       nameLower.includes('graphics card bracket') ||
-       nameLower.includes('graphics card support') ||
-       nameLower.includes('vga bracket') ||
-       nameLower.includes('vga support')) &&
-      !nameLower.includes('geforce') &&
-      !nameLower.includes('radeon') &&
-      !nameLower.includes('rtx') &&
-      !nameLower.includes('rx ')) {
+  // Check GPU FIRST before accessories (to avoid false positives with GPU models)
+  if (
+    (nameLower.includes('gpu') ||
+      nameLower.includes('graphics card') ||
+      nameLower.includes('video card') ||
+      nameLower.includes('geforce') ||
+      nameLower.includes('radeon') ||
+      nameLower.includes('rtx') ||
+      nameLower.includes('gtx') ||
+      nameLower.includes('rx')) &&
+    !nameLower.includes('bracket') &&
+    !nameLower.includes('support') &&
+    !nameLower.includes('mount') &&
+    !nameLower.includes('holder')
+  ) {
+    return PartCategory.GPU;
+  }
+
+  // GPU brackets and support (accessories, not GPU itself) - after GPU check above
+  if (
+    nameLower.includes('gpu bracket') ||
+    nameLower.includes('gpu support') ||
+    nameLower.includes('graphics card bracket') ||
+    nameLower.includes('graphics card support') ||
+    nameLower.includes('vga bracket') ||
+    nameLower.includes('vga support')
+  ) {
     return PartCategory.ACCESSORY;
   }
 
   // Other accessories
-  if (nameLower.includes('adapter') ||
-      nameLower.includes('rgb strip') ||
-      nameLower.includes('led strip') ||
-      nameLower.includes('argb') ||
-      nameLower.includes('fan hub') ||
-      nameLower.includes('fan controller') ||
-      nameLower.includes('cable management') ||
-      nameLower.includes('standoff')) {
+  if (
+    nameLower.includes('adapter') ||
+    nameLower.includes('rgb strip') ||
+    nameLower.includes('led strip') ||
+    nameLower.includes('argb') ||
+    nameLower.includes('fan hub') ||
+    nameLower.includes('fan controller') ||
+    nameLower.includes('cable management') ||
+    nameLower.includes('standoff')
+  ) {
     return PartCategory.ACCESSORY;
   }
 
   // Check CPU (exclude coolers, cooling, and thermal-related)
-  if ((nameLower.includes('cpu') || nameLower.includes('processor')) &&
-      !nameLower.includes('cooler') &&
-      !nameLower.includes('cooling') &&
-      !nameLower.includes('thermal') &&
-      !nameLower.includes('heatsink') &&
-      !nameLower.includes('air') &&
-      !nameLower.includes('tower') &&
-      !nameLower.includes('aio')) {
+  if (
+    (nameLower.includes('cpu') || nameLower.includes('processor')) &&
+    !nameLower.includes('cooler') &&
+    !nameLower.includes('cooling') &&
+    !nameLower.includes('thermal') &&
+    !nameLower.includes('heatsink') &&
+    !nameLower.includes('air') &&
+    !nameLower.includes('tower') &&
+    !nameLower.includes('aio')
+  ) {
     return PartCategory.CPU;
   }
 
   // Check CASE_FAN (case/chassis fans)
   const caseFanKeywords = [
-    'case fan', 'chassis fan', 'pwm fan',
-    'cooling fan', 'intake fan', 'exhaust fan',
-    'mm fan', '120mm', '140mm', '200mm'
+    'case fan',
+    'chassis fan',
+    'pwm fan',
+    'cooling fan',
+    'intake fan',
+    'exhaust fan',
+    'mm fan',
+    '120mm',
+    '140mm',
+    '200mm',
   ];
   for (const keyword of caseFanKeywords) {
     if (nameLower.includes(keyword) || hintLower.includes(keyword)) {
@@ -156,30 +200,16 @@ function categorizeProduct(name: string, hint?: string): PartCategory {
   }
 
   // Check STORAGE but exclude enclosures
-  if ((nameLower.includes('ssd') ||
-       nameLower.includes('hdd') ||
-       nameLower.includes('hard drive') ||
-       nameLower.includes('nvme') ||
-       nameLower.includes('m.2')) &&
-      !nameLower.includes('enclosure') &&
-      !nameLower.includes('external')) {
+  if (
+    (nameLower.includes('ssd') ||
+      nameLower.includes('hdd') ||
+      nameLower.includes('hard drive') ||
+      nameLower.includes('nvme') ||
+      nameLower.includes('m.2')) &&
+    !nameLower.includes('enclosure') &&
+    !nameLower.includes('external')
+  ) {
     return PartCategory.STORAGE;
-  }
-
-  // Check GPU (exclude brackets, mounts, and support accessories)
-  if ((nameLower.includes('gpu') ||
-       nameLower.includes('graphics card') ||
-       nameLower.includes('video card') ||
-       nameLower.includes('geforce') ||
-       nameLower.includes('radeon') ||
-       nameLower.includes('rtx ') ||
-       nameLower.includes('gtx ') ||
-       nameLower.includes('rx ')) &&
-      !nameLower.includes('bracket') &&
-      !nameLower.includes('support') &&
-      !nameLower.includes('mount') &&
-      !nameLower.includes('holder')) {
-    return PartCategory.GPU;
   }
 
   // Other main categories
@@ -215,11 +245,35 @@ function extractBrand(name: string, hint?: string): string | undefined {
   if (hint) return hint;
 
   const brands = [
-    'AMD', 'Intel', 'NVIDIA', 'ASUS', 'MSI', 'Gigabyte', 'ASRock',
-    'Corsair', 'G.Skill', 'Kingston', 'Samsung', 'Western Digital',
-    'Seagate', 'EVGA', 'Cooler Master', 'NZXT', 'Thermaltake',
-    'Fractal Design', 'be quiet!', 'Lian Li', 'Razer', 'Logitech',
-    'SteelSeries', 'HyperX', 'LG', 'Dell', 'BenQ', 'AOC', 'ViewSonic',
+    'AMD',
+    'Intel',
+    'NVIDIA',
+    'ASUS',
+    'MSI',
+    'Gigabyte',
+    'ASRock',
+    'Corsair',
+    'G.Skill',
+    'Kingston',
+    'Samsung',
+    'Western Digital',
+    'Seagate',
+    'EVGA',
+    'Cooler Master',
+    'NZXT',
+    'Thermaltake',
+    'Fractal Design',
+    'be quiet!',
+    'Lian Li',
+    'Razer',
+    'Logitech',
+    'SteelSeries',
+    'HyperX',
+    'LG',
+    'Dell',
+    'BenQ',
+    'AOC',
+    'ViewSonic',
   ];
 
   const nameLower = name.toLowerCase();

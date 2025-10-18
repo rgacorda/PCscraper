@@ -1,75 +1,146 @@
-import * as cheerio from 'cheerio';
+import * as fs from 'fs/promises';
+import * as path from 'path';
 import { ScrapedProduct } from '../normalizer';
 import { fetchWithRetry } from '@/lib/utils';
 
+interface ShopifyProduct {
+  id: number;
+  title: string;
+  handle: string;
+  price?: string;
+  variants?: Array<{
+    price: string;
+    available?: boolean;
+  }>;
+  featured_image?: {
+    src: string;
+  };
+  images?: Array<{
+    src: string;
+    position?: number;
+  }>;
+  available: boolean;
+}
+
+interface ShopifyCollectionResponse {
+  products: ShopifyProduct[];
+}
+
 export async function scrapeDatablitz(): Promise<ScrapedProduct[]> {
   const products: ScrapedProduct[] = [];
+  const seenUrls = new Set<string>(); // Track duplicates
+
   const baseUrl = 'https://ecommerce.datablitz.com.ph';
+  const collectionApiUrl =
+    'https://ecommerce.datablitz.com.ph/collections/pc-parts-and-components/products.json';
 
-  // Get max pages from environment variable (default to 50)
-  const maxPages = process.env.DATABLITZ_MAX_PAGES
-    ? parseInt(process.env.DATABLITZ_MAX_PAGES, 10)
-    : 50;
+  const pageSize = 250; // Shopify max limit per request
+  let hasMore = true;
+  let pageNum = 1;
+  let pagesDuplicated = 0; // Track consecutive pages with all duplicates
 
-  // Categories to scrape
-  const categories = ['/collections/pc-components', '/collections/pc-peripherals'];
+  while (hasMore) {
+    try {
+      // Use page parameter instead of since for proper pagination
+      const url = `${collectionApiUrl}?limit=${pageSize}&page=${pageNum}`;
 
-  for (const category of categories) {
-    let page = 1;
+      console.log(`Fetching page ${pageNum} from Datablitz API...`);
 
-    // Paginate through each category
-    while (page <= maxPages) {
-      try {
-        const url =
-          page === 1 ? `${baseUrl}${category}` : `${baseUrl}${category}?page=${page}`;
+      const response = await fetchWithRetry(url);
 
-        const html = await fetchWithRetry(url);
-        const $ = cheerio.load(html);
+      // axios automatically parses JSON, so response might already be an object
+      const data: ShopifyCollectionResponse =
+        typeof response === 'string' ? JSON.parse(response) : response;
 
-        const itemsFound = $('.product-item').length;
-
-        // If no items found, we've reached the end
-        if (itemsFound === 0) {
-          break;
-        }
-
-        $('.product-item').each((_, element) => {
-          try {
-            const $el = $(element);
-
-            const name = $el.find('.product-item__title').text().trim();
-            const priceText = $el.find('.price').first().text().trim();
-            const price = parsePrice(priceText);
-            const url = baseUrl + $el.find('a').first().attr('href');
-            const imageUrl = $el.find('img').first().attr('src');
-            const inStock = !$el.find('.sold-out').length;
-
-            if (name && price > 0) {
-              products.push({
-                name,
-                price,
-                url,
-                imageUrl,
-                inStock,
-              });
-            }
-          } catch (err) {
-            console.error('Error parsing Datablitz product:', err);
-          }
-        });
-
-        page++;
-      } catch (err) {
-        console.error(`Error scraping Datablitz category ${category} page ${page}:`, err);
+      if (!data.products || data.products.length === 0) {
+        console.log(`No more products found at page ${pageNum}`);
+        hasMore = false;
         break;
       }
+
+      let pageNewProducts = 0;
+      let pageDuplicates = 0;
+
+      data.products.forEach((product: ShopifyProduct) => {
+        try {
+          // Only include products that have at least one variant in stock
+          const hasAvailableVariant =
+            product.variants && product.variants.some((v) => v.available === true);
+          if (!hasAvailableVariant) {
+            return;
+          }
+
+          const name = product.title?.trim();
+          // Get price from first variant or product price
+          let price = 0;
+          if (product.variants && product.variants.length > 0) {
+            price = parseFloat(product.variants[0].price || '0');
+          } else if (product.price) {
+            price = parseFloat(product.price);
+          }
+
+          const productUrl = `${baseUrl}/products/${product.handle}`;
+
+          // Skip if we've already seen this product URL (deduplication)
+          if (seenUrls.has(productUrl)) {
+            pageDuplicates++;
+            return;
+          }
+          seenUrls.add(productUrl);
+          pageNewProducts++;
+
+          // Prefer featured_image, fall back to first image from images array
+          let imageUrl = product.featured_image?.src;
+          if (!imageUrl && product.images && product.images.length > 0) {
+            imageUrl = product.images[0].src;
+          }
+
+          const inStock = hasAvailableVariant;
+
+          if (name && price > 0) {
+            products.push({
+              name,
+              price,
+              url: productUrl,
+              imageUrl,
+              inStock,
+            });
+          }
+        } catch (err) {
+          console.error('Error parsing product:', err);
+        }
+      });
+
+      console.log(
+        `✓ Page ${pageNum}: ${pageNewProducts} new products, ${pageDuplicates} duplicates (total: ${products.length})`
+      );
+
+      // If all products on this page were duplicates, increment counter
+      if (pageNewProducts === 0 && data.products.length > 0) {
+        pagesDuplicated++;
+        console.log(
+          `  ⚠️  All products duplicated. Consecutive duplicate pages: ${pagesDuplicated}`
+        );
+        // Stop if we see 3 consecutive pages of all duplicates (likely reached end)
+        if (pagesDuplicated >= 3) {
+          console.log('Reached end of collection (3 consecutive all-duplicate pages).');
+          hasMore = false;
+        }
+      } else {
+        pagesDuplicated = 0; // Reset counter if we found new products
+      }
+
+      pageNum++;
+    } catch (err) {
+      console.error(`Error scraping page ${pageNum}:`, err);
+      hasMore = false;
     }
   }
 
-  return products;
-}
+  // Export scraped products to file in root
+  const outputPath = path.join(process.cwd(), 'datablitz-products.json');
+  await fs.writeFile(outputPath, JSON.stringify(products, null, 2));
+  console.log(`Scraped ${products.length} products exported to ${outputPath}`);
 
-function parsePrice(priceText: string): number {
-  const cleaned = priceText.replace(/[^\d.]/g, '');
-  return parseFloat(cleaned) || 0;
+  return products;
 }
