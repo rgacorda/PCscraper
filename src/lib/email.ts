@@ -140,6 +140,114 @@ export async function sendVerificationEmail(email: string, token: string) {
   }
 }
 
+export async function sendEmailChangeVerification(
+  email: string,
+  name: string,
+  token: string
+) {
+  const verificationUrl = `${
+    process.env.NEXTAUTH_URL || process.env.NEXT_PUBLIC_APP_URL
+  }/api/auth/verify?token=${token}`;
+
+  const mailOptions = {
+    from: `PC Builder Support <${process.env.GMAIL_OAUTH_USER}>`,
+    to: email,
+    subject: 'Verify your new email address',
+    html: `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <style>
+            body {
+              font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+              line-height: 1.6;
+              color: #333;
+              max-width: 600px;
+              margin: 0 auto;
+              padding: 20px;
+            }
+            .container {
+              background-color: #f8f9fa;
+              border-radius: 10px;
+              padding: 30px;
+              margin: 20px 0;
+            }
+            .header {
+              background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+              color: white;
+              padding: 30px;
+              border-radius: 10px 10px 0 0;
+              text-align: center;
+            }
+            .content {
+              background: white;
+              padding: 30px;
+              border-radius: 0 0 10px 10px;
+            }
+            .button {
+              display: inline-block;
+              background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+              color: white;
+              padding: 15px 30px;
+              text-decoration: none;
+              border-radius: 8px;
+              margin: 20px 0;
+              font-weight: bold;
+            }
+            .footer {
+              text-align: center;
+              color: #6b7280;
+              font-size: 14px;
+              margin-top: 30px;
+            }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <div class="header">
+              <h1>Email Address Changed</h1>
+            </div>
+            <div class="content">
+              <h2>Verify Your New Email Address</h2>
+              <p>Hi ${name},</p>
+              <p>You recently changed your email address. Please click the button below to verify your new email address and continue using your account.</p>
+
+              <div style="text-align: center;">
+                <a href="${verificationUrl}" class="button">Verify New Email Address</a>
+              </div>
+
+              <p>Or copy and paste this link into your browser:</p>
+              <p style="word-break: break-all; color: #2563eb;">${verificationUrl}</p>
+
+              <p style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e7eb;">
+                <strong>Note:</strong> This link will expire in 24 hours.
+              </p>
+            </div>
+          </div>
+          <div class="footer">
+            <p>If you didn't change your email address, please contact support immediately.</p>
+            <p>&copy; 2025 PC Builder. All rights reserved.</p>
+          </div>
+        </body>
+      </html>
+    `,
+  };
+
+  try {
+    const info = await transporter.sendMail(mailOptions);
+    console.log(
+      'Email change verification sent to:',
+      email,
+      'messageId:',
+      info?.messageId
+    );
+    return info;
+  } catch (error) {
+    console.error('Failed to send email change verification:', error);
+    throw error;
+  }
+}
+
 export async function sendPasswordResetEmail(
   email: string,
   name: string,

@@ -21,13 +21,14 @@ interface UserProfile {
 }
 
 export default function ProfilePage() {
-  const { data: session, status } = useSession();
+  const { data: session, status, update } = useSession();
   const router = useRouter();
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
   const [isChangingPassword, setIsChangingPassword] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [resendingEmail, setResendingEmail] = useState(false);
 
   // Edit form state
   const [editForm, setEditForm] = useState({
@@ -92,11 +93,36 @@ export default function ProfilePage() {
       if (response.ok) {
         setProfile(data.user);
         setIsEditing(false);
-        toast.success('Profile updated successfully');
+
+        // Show different message if email was changed
+        if (data.emailChanged) {
+          toast.success('Profile updated! Please check your new email to verify it.', {
+            duration: 5000,
+          });
+        } else {
+          toast.success('Profile updated successfully');
+        }
+
+        // Update the session with the new user data
+        if (update) {
+          await update({
+            ...session,
+            user: {
+              ...session?.user,
+              name: data.user.name,
+              email: data.user.email,
+              image: data.user.image,
+            },
+          });
+        }
       } else {
-        toast.error(data.error || 'Failed to update profile');
+        const errorMessage = data.error || 'Failed to update profile';
+        const details = data.details ? ` (${data.details})` : '';
+        toast.error(errorMessage + details);
+        console.error('Profile update error:', data);
       }
     } catch (error) {
+      console.error('Profile update exception:', error);
       toast.error('Error updating profile');
     } finally {
       setLoading(false);
@@ -161,6 +187,28 @@ export default function ProfilePage() {
     }
   };
 
+  const handleResendVerification = async () => {
+    setResendingEmail(true);
+
+    try {
+      const response = await fetch('/api/auth/resend-verification', {
+        method: 'POST',
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        toast.success(data.message);
+      } else {
+        toast.error(data.error || 'Failed to resend verification email');
+      }
+    } catch (error) {
+      toast.error('Error resending verification email');
+    } finally {
+      setResendingEmail(false);
+    }
+  };
+
   if (status === 'loading' || loading) {
     return (
       <div className="min-h-[calc(100vh-64px)] flex items-center justify-center">
@@ -196,30 +244,72 @@ export default function ProfilePage() {
           {!isEditing && !isChangingPassword ? (
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Name
+                </label>
                 <p className="text-lg text-gray-900">{profile.name}</p>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Email
+                </label>
                 <p className="text-lg text-gray-900">{profile.email}</p>
-                {profile.emailVerified && (
+                {profile.emailVerified ? (
                   <span className="inline-flex items-center mt-1 text-sm text-green-600">
                     <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                      <path
+                        fillRule="evenodd"
+                        d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                        clipRule="evenodd"
+                      />
                     </svg>
                     Verified
                   </span>
+                ) : (
+                  <div className="mt-2 space-y-2">
+                    <div className="flex items-start gap-2 bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+                      <svg
+                        className="w-5 h-5 text-yellow-600 flex-shrink-0 mt-0.5"
+                        fill="currentColor"
+                        viewBox="0 0 20 20"
+                      >
+                        <path
+                          fillRule="evenodd"
+                          d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
+                          clipRule="evenodd"
+                        />
+                      </svg>
+                      <div className="flex-1">
+                        <p className="text-sm font-medium text-yellow-800">
+                          Email not verified
+                        </p>
+                        <p className="text-sm text-yellow-700 mt-0.5">
+                          Please check your inbox and verify your email address to fully
+                          activate your account.
+                        </p>
+                      </div>
+                    </div>
+                    <button
+                      onClick={handleResendVerification}
+                      disabled={resendingEmail}
+                      className="text-sm text-blue-600 hover:text-blue-700 font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {resendingEmail ? 'Sending...' : 'Resend Verification Email'}
+                    </button>
+                  </div>
                 )}
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Member Since</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Member Since
+                </label>
                 <p className="text-lg text-gray-900">
                   {new Date(profile.createdAt).toLocaleDateString('en-US', {
                     year: 'numeric',
                     month: 'long',
-                    day: 'numeric'
+                    day: 'numeric',
                   })}
                 </p>
               </div>
@@ -227,7 +317,10 @@ export default function ProfilePage() {
           ) : isEditing ? (
             <form onSubmit={handleUpdateProfile} className="space-y-4">
               <div>
-                <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
+                <label
+                  htmlFor="name"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
                   Name
                 </label>
                 <input
@@ -241,7 +334,10 @@ export default function ProfilePage() {
               </div>
 
               <div>
-                <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
+                <label
+                  htmlFor="email"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
                   Email
                 </label>
                 <input
@@ -255,7 +351,10 @@ export default function ProfilePage() {
               </div>
 
               <div>
-                <label htmlFor="image" className="block text-sm font-medium text-gray-700 mb-1">
+                <label
+                  htmlFor="image"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
                   Profile Image URL (optional)
                 </label>
                 <input
@@ -304,11 +403,15 @@ export default function ProfilePage() {
               <p className="text-sm text-gray-600">Builds Created</p>
             </div>
             <div className="bg-green-50 p-4 rounded-lg">
-              <p className="text-2xl font-bold text-green-600">{profile._count.buildRatings}</p>
+              <p className="text-2xl font-bold text-green-600">
+                {profile._count.buildRatings}
+              </p>
               <p className="text-sm text-gray-600">Ratings Given</p>
             </div>
             <div className="bg-purple-50 p-4 rounded-lg">
-              <p className="text-2xl font-bold text-purple-600">{profile._count.buildComments}</p>
+              <p className="text-2xl font-bold text-purple-600">
+                {profile._count.buildComments}
+              </p>
               <p className="text-sm text-gray-600">Comments Posted</p>
             </div>
           </div>
@@ -331,28 +434,38 @@ export default function ProfilePage() {
           {isChangingPassword ? (
             <form onSubmit={handleChangePassword} className="space-y-4">
               <div>
-                <label htmlFor="currentPassword" className="block text-sm font-medium text-gray-700 mb-1">
+                <label
+                  htmlFor="currentPassword"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
                   Current Password
                 </label>
                 <input
                   type="password"
                   id="currentPassword"
                   value={passwordForm.currentPassword}
-                  onChange={(e) => setPasswordForm({ ...passwordForm, currentPassword: e.target.value })}
+                  onChange={(e) =>
+                    setPasswordForm({ ...passwordForm, currentPassword: e.target.value })
+                  }
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   required
                 />
               </div>
 
               <div>
-                <label htmlFor="newPassword" className="block text-sm font-medium text-gray-700 mb-1">
+                <label
+                  htmlFor="newPassword"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
                   New Password
                 </label>
                 <input
                   type="password"
                   id="newPassword"
                   value={passwordForm.newPassword}
-                  onChange={(e) => setPasswordForm({ ...passwordForm, newPassword: e.target.value })}
+                  onChange={(e) =>
+                    setPasswordForm({ ...passwordForm, newPassword: e.target.value })
+                  }
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   required
                   minLength={6}
@@ -360,14 +473,19 @@ export default function ProfilePage() {
               </div>
 
               <div>
-                <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-1">
+                <label
+                  htmlFor="confirmPassword"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
                   Confirm New Password
                 </label>
                 <input
                   type="password"
                   id="confirmPassword"
                   value={passwordForm.confirmPassword}
-                  onChange={(e) => setPasswordForm({ ...passwordForm, confirmPassword: e.target.value })}
+                  onChange={(e) =>
+                    setPasswordForm({ ...passwordForm, confirmPassword: e.target.value })
+                  }
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   required
                   minLength={6}
@@ -410,7 +528,9 @@ export default function ProfilePage() {
           {!showDeleteConfirm ? (
             <div>
               <p className="text-gray-600 mb-4">
-                Deleting your account is permanent and cannot be undone. Your public builds will be preserved but will no longer be associated with your account.
+                Deleting your account is permanent and cannot be undone. Your public
+                builds will be preserved but will no longer be associated with your
+                account.
               </p>
               <button
                 onClick={() => setShowDeleteConfirm(true)}

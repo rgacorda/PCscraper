@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import prisma from '@/lib/prisma';
+import { sendEmailChangeVerification } from '@/lib/email';
+import crypto from 'crypto';
 
 // GET - Get current user profile
 export async function GET(_request: NextRequest) {
@@ -75,6 +77,40 @@ export async function PUT(_request: NextRequest) {
       }
     }
 
+    // Check if email is being changed
+    const emailChanged = email !== session.user.email;
+    let verificationToken = null;
+
+    // If email is changed, generate verification token and set emailVerified to null
+    if (emailChanged) {
+      const token = crypto.randomBytes(32).toString('hex');
+      const expires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
+
+      // Delete any existing verification tokens for this email
+      await prisma.verificationToken.deleteMany({
+        where: { identifier: email },
+      });
+
+      // Create new verification token
+      await prisma.verificationToken.create({
+        data: {
+          identifier: email,
+          token: token,
+          expires: expires,
+        },
+      });
+
+      verificationToken = token;
+
+      // Send verification email to new address
+      try {
+        await sendEmailChangeVerification(email, name.trim(), token);
+      } catch (emailError) {
+        console.error('Failed to send verification email:', emailError);
+        // Continue with update but log the error
+      }
+    }
+
     // Update user
     const updatedUser = await prisma.user.update({
       where: { id: session.user.id },
@@ -82,6 +118,8 @@ export async function PUT(_request: NextRequest) {
         name: name.trim(),
         email,
         image: image || null,
+        // Set emailVerified to null if email changed
+        ...(emailChanged && { emailVerified: null }),
       },
       select: {
         id: true,
@@ -91,16 +129,42 @@ export async function PUT(_request: NextRequest) {
         emailVerified: true,
         createdAt: true,
         updatedAt: true,
+        _count: {
+          select: {
+            builds: true,
+            buildRatings: true,
+            buildComments: true,
+          },
+        },
       },
     });
 
-    return NextResponse.json({
-      message: 'Profile updated successfully',
-      user: updatedUser,
-    });
+    return NextResponse.json(
+      {
+        message: emailChanged
+          ? 'Profile updated successfully. Please verify your new email address.'
+          : 'Profile updated successfully',
+        user: updatedUser,
+        emailChanged,
+      },
+      { status: 200 }
+    );
   } catch (error) {
     console.error('Error updating user profile:', error);
-    return NextResponse.json({ error: 'Failed to update user profile' }, { status: 500 });
+
+    // Provide more specific error information
+    if (error instanceof Error) {
+      console.error('Error details:', error.message);
+      console.error('Error stack:', error.stack);
+    }
+
+    return NextResponse.json(
+      {
+        error: 'Failed to update user profile',
+        details: error instanceof Error ? error.message : 'Unknown error',
+      },
+      { status: 500 }
+    );
   }
 }
 

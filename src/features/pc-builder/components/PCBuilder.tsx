@@ -149,9 +149,12 @@ export default function PCBuilder() {
 
   const totalPrice = buildItems.reduce((sum, item) => sum + item.price, 0);
 
-  const handleSaveToMyBuilds = async () => {
+  const handleSaveToMyBuilds = async (finalBuildName?: string) => {
     setSaving(true);
     setSaveMessage(null);
+
+    // Use the passed name or fall back to the state
+    const nameToSave = finalBuildName || buildName;
 
     try {
       if (editingBuildId) {
@@ -160,7 +163,7 @@ export default function PCBuilder() {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            name: buildName,
+            name: nameToSave,
             description: `PC Build with ${buildItems.length} components`,
             items: buildItems.map((item) => ({
               productId: item.productId,
@@ -191,7 +194,7 @@ export default function PCBuilder() {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            name: buildName,
+            name: nameToSave,
             description: `PC Build with ${buildItems.length} components`,
             items: buildItems.map((item) => ({
               productId: item.productId,
@@ -228,16 +231,19 @@ export default function PCBuilder() {
     }
   };
 
-  const handleSaveToPDF = async () => {
+  const handleSaveToPDF = async (finalBuildName?: string) => {
     setSaving(true);
     setSaveMessage(null);
+
+    // Use the passed name or fall back to the state
+    const nameToSave = finalBuildName || buildName;
 
     try {
       const response = await fetch('/api/builds/pdf', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          name: buildName,
+          name: nameToSave,
           description: `PC Build with ${buildItems.length} components`,
           items: buildItems.map((item) => ({
             productId: item.productId,
@@ -257,7 +263,7 @@ export default function PCBuilder() {
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = `${buildName.replace(/\s+/g, '_')}.pdf`;
+        a.download = `${nameToSave.replace(/\s+/g, '_')}.pdf`;
         document.body.appendChild(a);
         a.click();
         window.URL.revokeObjectURL(url);
@@ -510,10 +516,15 @@ export default function PCBuilder() {
                     </td>
                     <td className="py-4 px-4 text-right">
                       {hasItems ? (
-                        <div className="space-y-1">
+                        <div className="space-y-2">
                           {items.map((item) => (
-                            <div key={item.id} className="font-semibold text-gray-900">
-                              {formatPrice(item.price)}
+                            <div
+                              key={item.id}
+                              className="flex items-start justify-end h-12"
+                            >
+                              <div className="font-semibold text-gray-900 mt-0.5">
+                                {formatPrice(item.price)}
+                              </div>
                             </div>
                           ))}
                         </div>
@@ -525,26 +536,30 @@ export default function PCBuilder() {
                       {hasItems ? (
                         <div className="space-y-2">
                           {items.map((item) => (
-                            <button
+                            <div
                               key={item.id}
-                              onClick={() => removeItem(item.id)}
-                              className="text-gray-400 hover:text-red-600 p-1"
-                              title="Remove"
+                              className="flex items-start justify-end h-12"
                             >
-                              <svg
-                                className="w-5 h-5"
-                                fill="none"
-                                stroke="currentColor"
-                                viewBox="0 0 24 24"
+                              <button
+                                onClick={() => removeItem(item.id)}
+                                className="text-gray-400 hover:text-red-600 p-1 -mt-1"
+                                title="Remove"
                               >
-                                <path
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                  strokeWidth={2}
-                                  d="M6 18L18 6M6 6l12 12"
-                                />
-                              </svg>
-                            </button>
+                                <svg
+                                  className="w-5 h-5"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  viewBox="0 0 24 24"
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M6 18L18 6M6 6l12 12"
+                                  />
+                                </svg>
+                              </button>
+                            </div>
                           ))}
                         </div>
                       ) : (
@@ -608,6 +623,8 @@ export default function PCBuilder() {
           onSaveToPDF={handleSaveToPDF}
           onClose={() => setShowSaveOptions(false)}
           saving={saving}
+          buildName={buildName}
+          onBuildNameChange={setBuildName}
         />
       )}
     </div>
