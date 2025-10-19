@@ -40,6 +40,7 @@ interface ComponentSelectorProps {
 interface Filters {
   cpuBrand?: string;
   gpuBrand?: string;
+  gpuSeries?: string;
   motherboardChipset?: string;
   ramType?: string;
   storageCapacity?: string;
@@ -105,6 +106,108 @@ export default function ComponentSelector({
           ) {
             return false;
           }
+        }
+      }
+
+      // GPU Series Filter (RTX 3000, RTX 4000, RX 5000, RX 6000, RX 7000, etc.)
+      if (filters.gpuSeries && category === 'GPU') {
+        const series = filters.gpuSeries.toLowerCase();
+        let found = false;
+
+        // NVIDIA RTX Series
+        if (series === 'rtx 2000') {
+          found =
+            name.includes('rtx 20') ||
+            name.includes('rtx20') ||
+            name.includes('2060') ||
+            name.includes('2070') ||
+            name.includes('2080') ||
+            name.includes('2090');
+        } else if (series === 'rtx 3000') {
+          found =
+            name.includes('rtx 30') ||
+            name.includes('rtx30') ||
+            name.includes('3060') ||
+            name.includes('3070') ||
+            name.includes('3080') ||
+            name.includes('3090');
+        } else if (series === 'rtx 4000') {
+          found =
+            name.includes('rtx 40') ||
+            name.includes('rtx40') ||
+            name.includes('4060') ||
+            name.includes('4070') ||
+            name.includes('4080') ||
+            name.includes('4090');
+        } else if (series === 'rtx 5000') {
+          found =
+            name.includes('rtx 50') ||
+            name.includes('rtx50') ||
+            name.includes('5060') ||
+            name.includes('5070') ||
+            name.includes('5080') ||
+            name.includes('5090');
+        }
+        // NVIDIA GTX Series
+        else if (series === 'gtx 1000') {
+          found =
+            name.includes('gtx 10') ||
+            name.includes('gtx10') ||
+            name.includes('1050') ||
+            name.includes('1060') ||
+            name.includes('1070') ||
+            name.includes('1080');
+        } else if (series === 'gtx 1600') {
+          found =
+            name.includes('gtx 16') ||
+            name.includes('gtx16') ||
+            name.includes('1650') ||
+            name.includes('1660');
+        }
+        // AMD Radeon RX 5000 Series
+        else if (series === 'rx 5000') {
+          found =
+            name.includes('rx 5') ||
+            name.includes('rx5') ||
+            name.includes('5500') ||
+            name.includes('5600') ||
+            name.includes('5700');
+        }
+        // AMD Radeon RX 6000 Series
+        else if (series === 'rx 6000') {
+          found =
+            name.includes('rx 6') ||
+            name.includes('rx6') ||
+            name.includes('6500') ||
+            name.includes('6600') ||
+            name.includes('6700') ||
+            name.includes('6800') ||
+            name.includes('6900') ||
+            name.includes('6950');
+        }
+        // AMD Radeon RX 7000 Series
+        else if (series === 'rx 7000') {
+          found =
+            name.includes('rx 7') ||
+            name.includes('rx7') ||
+            name.includes('7600') ||
+            name.includes('7700') ||
+            name.includes('7800') ||
+            name.includes('7900');
+        }
+        // AMD Radeon RX 9000 Series (future-proofing)
+        else if (series === 'rx 9000') {
+          found =
+            name.includes('rx 9') ||
+            name.includes('rx9') ||
+            name.includes('9600') ||
+            name.includes('9700') ||
+            name.includes('9800') ||
+            name.includes('9900');
+        }
+
+        if (!found) {
+          return false;
         }
       }
 
@@ -509,7 +612,10 @@ export default function ComponentSelector({
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+    <div
+      className="fixed bg-black bg-opacity-50 z-[9999] flex items-center justify-center p-4 overflow-auto"
+      style={{ top: 0, left: 0, right: 0, bottom: 0, margin: 0 }}
+    >
       <div className="bg-white rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col">
         {/* Header */}
         <div className="bg-gradient-to-r from-primary-600 to-primary-700 text-white p-4 sm:p-6">
@@ -658,6 +764,40 @@ export default function ComponentSelector({
                 </div>
               )}
 
+              {/* GPU Series Filter */}
+              {category === 'GPU' && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    GPU Series
+                  </label>
+                  <select
+                    value={filters.gpuSeries || ''}
+                    onChange={(e) =>
+                      setFilters({ ...filters, gpuSeries: e.target.value || undefined })
+                    }
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                  >
+                    <option value="">All Series</option>
+                    <optgroup label="NVIDIA RTX">
+                      <option value="RTX 2000">RTX 2000 Series</option>
+                      <option value="RTX 3000">RTX 3000 Series</option>
+                      <option value="RTX 4000">RTX 4000 Series</option>
+                      <option value="RTX 5000">RTX 5000 Series</option>
+                    </optgroup>
+                    <optgroup label="NVIDIA GTX">
+                      <option value="GTX 1000">GTX 1000 Series</option>
+                      <option value="GTX 1600">GTX 1600 Series</option>
+                    </optgroup>
+                    <optgroup label="AMD Radeon">
+                      <option value="RX 5000">RX 5000 Series</option>
+                      <option value="RX 6000">RX 6000 Series</option>
+                      <option value="RX 7000">RX 7000 Series</option>
+                      <option value="RX 9000">RX 9000 Series</option>
+                    </optgroup>
+                  </select>
+                </div>
+              )}
+
               {/* Motherboard Chipset Filter */}
               {category === 'MOTHERBOARD' && (
                 <div>
@@ -682,21 +822,25 @@ export default function ComponentSelector({
                       <option value="X470">X470</option>
                       <option value="X570">X570</option>
                       <option value="B650">B650</option>
+                      <option value="B850">B850</option>
                       <option value="X670">X670</option>
+                      <option value="X870">X870</option>
                     </optgroup>
                     <optgroup label="Intel">
                       <option value="B460">B460</option>
                       <option value="B560">B560</option>
                       <option value="B660">B660</option>
                       <option value="B760">B760</option>
+                      <option value="B860">B860</option>
                       <option value="H410">H410</option>
                       <option value="H510">H510</option>
                       <option value="H610">H610</option>
-                      <option value="H670">H670</option>
+                      <option value="H810">H810</option>
                       <option value="Z490">Z490</option>
                       <option value="Z590">Z590</option>
                       <option value="Z690">Z690</option>
                       <option value="Z790">Z790</option>
+                      <option value="z890">Z890</option>
                     </optgroup>
                   </select>
                 </div>

@@ -177,7 +177,10 @@ export default function BuildDetailsModal({ buildId, onClose }: BuildDetailsModa
   const canRate = session && !isOwner;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4 overflow-y-auto">
+    <div
+      className="fixed bg-black bg-opacity-50 z-[9999] flex items-center justify-center p-4 overflow-y-auto"
+      style={{ top: 0, left: 0, right: 0, bottom: 0, margin: 0 }}
+    >
       <div className="bg-white rounded-xl shadow-2xl max-w-5xl w-full max-h-[90vh] overflow-hidden flex flex-col my-8">
         {/* Header */}
         <div className="bg-gradient-to-r from-primary-600 to-primary-700 text-white p-6">
