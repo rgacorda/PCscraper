@@ -203,6 +203,7 @@ export async function DELETE(_request: NextRequest) {
 
     return NextResponse.json({
       message: 'Account deleted successfully. Your public builds have been preserved.',
+      signOut: true, // Signal to client to sign out
     });
   } catch (error) {
     console.error('Error deleting user account:', error);

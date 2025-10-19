@@ -1,6 +1,6 @@
 'use client';
 
-import { useSession } from 'next-auth/react';
+import { useSession, signOut } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
@@ -171,11 +171,15 @@ export default function ProfilePage() {
       const data = await response.json();
 
       if (response.ok) {
-        toast.success(data.message);
-        // Redirect to home after a short delay
-        setTimeout(() => {
+        toast.success(data.message, {
+          duration: 3000,
+        });
+
+        // Sign out the user and redirect to home
+        setTimeout(async () => {
+          await signOut({ redirect: false });
           router.push('/');
-        }, 2000);
+        }, 1500);
       } else {
         toast.error(data.error || 'Failed to delete account');
       }

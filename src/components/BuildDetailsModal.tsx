@@ -60,10 +60,7 @@ interface BuildDetails {
   }>;
 }
 
-export default function BuildDetailsModal({
-  buildId,
-  onClose,
-}: BuildDetailsModalProps) {
+export default function BuildDetailsModal({ buildId, onClose }: BuildDetailsModalProps) {
   const { data: session } = useSession();
   const [build, setBuild] = useState<BuildDetails | null>(null);
   const [loading, setLoading] = useState(true);
@@ -190,7 +187,7 @@ export default function BuildDetailsModal({
               {build && (
                 <>
                   <p className="text-blue-100 text-sm mb-3">
-                    by {build.user.name || 'Anonymous'}
+                    by {build.user ? build.user.name || 'Anonymous' : 'Deleted Account'}
                   </p>
                   <StarRating
                     rating={build.averageRating}
@@ -205,8 +202,18 @@ export default function BuildDetailsModal({
               className="text-white hover:bg-white hover:bg-opacity-20 rounded-lg p-2 transition-colors"
               aria-label="Close"
             >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              <svg
+                className="w-6 h-6"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M6 18L18 6M6 6l12 12"
+                />
               </svg>
             </button>
           </div>
@@ -241,10 +248,12 @@ export default function BuildDetailsModal({
                           href: cheapestListing.retailerUrl,
                           target: '_blank',
                           rel: 'noopener noreferrer',
-                          className: 'flex items-center gap-4 p-3 bg-gray-50 hover:bg-primary-50 rounded-lg border border-gray-200 hover:border-primary-300 transition-all group cursor-pointer',
+                          className:
+                            'flex items-center gap-4 p-3 bg-gray-50 hover:bg-primary-50 rounded-lg border border-gray-200 hover:border-primary-300 transition-all group cursor-pointer',
                         }
                       : {
-                          className: 'flex items-center gap-4 p-3 bg-gray-50 rounded-lg border border-gray-200',
+                          className:
+                            'flex items-center gap-4 p-3 bg-gray-50 rounded-lg border border-gray-200',
                         };
 
                     return (
@@ -257,8 +266,18 @@ export default function BuildDetailsModal({
                           />
                         ) : (
                           <div className="w-16 h-16 bg-gray-200 rounded-lg flex items-center justify-center">
-                            <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                            <svg
+                              className="w-8 h-8 text-gray-400"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={1.5}
+                                d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+                              />
                             </svg>
                           </div>
                         )}
@@ -267,24 +286,41 @@ export default function BuildDetailsModal({
                             {item.product.name}
                           </p>
                           <div className="flex items-center gap-2 mt-1">
-                            <span className="badge-info text-xs">{item.product.category}</span>
+                            <span className="badge-info text-xs">
+                              {item.product.category}
+                            </span>
                             {item.product.brand && (
-                              <span className="text-xs text-gray-500">{item.product.brand}</span>
+                              <span className="text-xs text-gray-500">
+                                {item.product.brand}
+                              </span>
                             )}
                             {cheapestListing && (
                               <span className="text-xs text-primary-600 font-medium">
-                                {formatPrice(Number(cheapestListing.price))} @ {cheapestListing.retailer}
+                                {formatPrice(Number(cheapestListing.price))} @{' '}
+                                {cheapestListing.retailer}
                               </span>
                             )}
                           </div>
                         </div>
                         <div className="flex items-center gap-2">
                           {item.quantity > 1 && (
-                            <span className="text-sm text-gray-600">×{item.quantity}</span>
+                            <span className="text-sm text-gray-600">
+                              ×{item.quantity}
+                            </span>
                           )}
                           {cheapestListing && (
-                            <svg className="w-5 h-5 text-gray-400 group-hover:text-primary-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                            <svg
+                              className="w-5 h-5 text-gray-400 group-hover:text-primary-600 transition-colors"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+                              />
                             </svg>
                           )}
                         </div>
@@ -294,7 +330,9 @@ export default function BuildDetailsModal({
                 </div>
                 <div className="mt-4 pt-4 border-t border-gray-200">
                   <div className="flex items-center justify-between">
-                    <span className="text-lg font-semibold text-gray-900">Total Price:</span>
+                    <span className="text-lg font-semibold text-gray-900">
+                      Total Price:
+                    </span>
                     <span className="text-2xl font-bold text-primary-600">
                       {formatPrice(Number(build.totalPrice))}
                     </span>
@@ -313,7 +351,8 @@ export default function BuildDetailsModal({
                   />
                   {userRating > 0 && (
                     <p className="text-sm text-gray-600 mt-2">
-                      You rated this build {userRating} {userRating === 1 ? 'star' : 'stars'}
+                      You rated this build {userRating}{' '}
+                      {userRating === 1 ? 'star' : 'stars'}
                     </p>
                   )}
                 </div>

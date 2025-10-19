@@ -64,7 +64,8 @@ export default function MyBuildsPage() {
           Your Saved Builds
         </h2>
         <p className="text-gray-600 text-sm sm:text-base">
-          View, edit, and manage your custom PC configurations
+          View, edit, and manage your custom PC configurations. Toggle visibility to share
+          builds with the community or keep them private.
         </p>
       </div>
 

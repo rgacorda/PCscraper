@@ -12,7 +12,7 @@ interface Comment {
   user: {
     id: string;
     name: string | null;
-  };
+  } | null;
 }
 
 interface CommentListProps {
@@ -21,11 +21,7 @@ interface CommentListProps {
   onEdit?: (commentId: string, content: string) => Promise<void>;
 }
 
-export default function CommentList({
-  comments,
-  onDelete,
-  onEdit,
-}: CommentListProps) {
+export default function CommentList({ comments, onDelete, onEdit }: CommentListProps) {
   const { data: session } = useSession();
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editContent, setEditContent] = useState('');
@@ -83,7 +79,7 @@ export default function CommentList({
   return (
     <div className="space-y-4">
       {comments.map((comment) => {
-        const isOwner = session?.user?.id === comment.user.id;
+        const isOwner = session?.user?.id === comment.user?.id;
         const isEditing = editingId === comment.id;
         const isDeleting = deletingId === comment.id;
 
@@ -96,11 +92,11 @@ export default function CommentList({
             <div className="flex items-start justify-between mb-2">
               <div className="flex items-center gap-2">
                 <div className="w-8 h-8 bg-gradient-to-br from-primary-500 to-primary-600 rounded-full flex items-center justify-center text-white font-semibold text-sm">
-                  {(comment.user.name?.[0] || 'U').toUpperCase()}
+                  {(comment.user?.name?.[0] || 'D').toUpperCase()}
                 </div>
                 <div>
                   <p className="font-medium text-gray-900">
-                    {comment.user.name || 'Anonymous'}
+                    {comment.user ? comment.user.name || 'Anonymous' : 'Deleted Account'}
                   </p>
                   <p className="text-xs text-gray-500">
                     {formatDistanceToNow(new Date(comment.createdAt), {
